@@ -1,11 +1,8 @@
 package ch.rasc.eds.starter.config.security;
 
+import org.mongodb.morphia.Datastore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent;
 import org.springframework.stereotype.Component;
 
@@ -16,11 +13,11 @@ import ch.rasc.eds.starter.entity.User;
 public class UserAuthSuccessfulHandler
 		implements ApplicationListener<InteractiveAuthenticationSuccessEvent> {
 
-	private final MongoTemplate mongoTemplate;
+	private final Datastore ds;
 
 	@Autowired
-	public UserAuthSuccessfulHandler(MongoTemplate mongoTemplate) {
-		this.mongoTemplate = mongoTemplate;
+	public UserAuthSuccessfulHandler(Datastore ds) {
+		this.ds = ds;
 	}
 
 	@Override
@@ -29,10 +26,10 @@ public class UserAuthSuccessfulHandler
 		if (principal instanceof MongoUserDetails) {
 			String userId = ((MongoUserDetails) principal).getUserDbId();
 
-			this.mongoTemplate.updateFirst(
-					Query.query(Criteria.where(CUser.id).is(userId)),
-					Update.update(CUser.lockedOutUntil, null).set(CUser.failedLogins, 0),
-					User.class);
+			this.ds.updateFirst(
+					this.ds.createQuery(User.class).field(CUser.id).equal(userId),
+					this.ds.createUpdateOperations(User.class).unset(CUser.lockedOutUntil)
+							.set(CUser.failedLogins, 0));
 
 		}
 	}

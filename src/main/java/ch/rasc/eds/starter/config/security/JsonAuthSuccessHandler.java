@@ -9,11 +9,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.mongodb.morphia.Datastore;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -28,14 +25,13 @@ import ch.rasc.eds.starter.service.SecurityService;
 @Component
 public class JsonAuthSuccessHandler implements AuthenticationSuccessHandler {
 
-	private final MongoTemplate mongoTemplate;
+	private final Datastore ds;
 
 	private final ObjectMapper objectMapper;
 
 	@Autowired
-	public JsonAuthSuccessHandler(MongoTemplate mongoTemplate,
-			ObjectMapper objectMapper) {
-		this.mongoTemplate = mongoTemplate;
+	public JsonAuthSuccessHandler(Datastore ds, ObjectMapper objectMapper) {
+		this.ds = ds;
 		this.objectMapper = objectMapper;
 	}
 
@@ -52,14 +48,14 @@ public class JsonAuthSuccessHandler implements AuthenticationSuccessHandler {
 		if (jpaUserDetails != null) {
 			User user;
 			if (!jpaUserDetails.isPreAuth()) {
-				user = this.mongoTemplate.findAndModify(
-						Query.query(Criteria.where(CUser.id)
-								.is(jpaUserDetails.getUserDbId())),
-						Update.update(CUser.lastAccess, new Date()), User.class);
+				user = this.ds.findAndModify(
+						this.ds.createQuery(User.class).field(CUser.id)
+								.equal(jpaUserDetails.getUserDbId()),
+						this.ds.createUpdateOperations(User.class).set(CUser.lastAccess,
+								new Date()));
 			}
 			else {
-				user = this.mongoTemplate.findById(jpaUserDetails.getUserDbId(),
-						User.class);
+				user = this.ds.get(User.class, jpaUserDetails.getUserDbId());
 			}
 			result.put(SecurityService.AUTH_USER,
 					new UserDetailDto(jpaUserDetails, user));

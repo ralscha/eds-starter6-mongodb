@@ -5,9 +5,11 @@ import java.util.List;
 
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotBlank;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
+import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.IndexOptions;
+import org.mongodb.morphia.annotations.Indexed;
+import org.mongodb.morphia.annotations.Transient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -16,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import ch.rasc.extclassgenerator.Model;
 import ch.rasc.extclassgenerator.ModelField;
 
-@Document
+@Entity(noClassnameStored = true)
 @Model(value = "Starter.model.User", readMethod = "userService.read",
 		createMethod = "userService.update", updateMethod = "userService.update",
 		destroyMethod = "userService.destroy", paging = true, identifier = "uuid")
@@ -24,6 +26,7 @@ import ch.rasc.extclassgenerator.ModelField;
 public class User {
 
 	@ModelField(useNull = true, convert = "null")
+	@Id
 	private String id;
 
 	@NotBlank(message = "{fieldrequired}")
@@ -33,7 +36,7 @@ public class User {
 	private String firstName;
 
 	@Email(message = "{invalidemail}")
-	@Indexed(unique = true)
+	@Indexed(options = @IndexOptions(unique = true) )
 	private String email;
 
 	private List<String> authorities;

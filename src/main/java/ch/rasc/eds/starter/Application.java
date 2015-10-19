@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.web.SpringDataWebAutoConfiguration;
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.mustache.MustacheAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -22,7 +23,7 @@ import ch.ralscha.extdirectspring.controller.ApiController;
 		excludeFilters = { @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
 				value = ApiController.class) })
 @EnableAutoConfiguration(exclude = { MustacheAutoConfiguration.class,
-		SpringDataWebAutoConfiguration.class })
+		MongoAutoConfiguration.class, SpringDataWebAutoConfiguration.class })
 @EnableAsync
 @EnableScheduling
 public class Application {

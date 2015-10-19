@@ -1,9 +1,7 @@
 package ch.rasc.eds.starter.config.security;
 
+import org.mongodb.morphia.Datastore;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,19 +13,20 @@ import ch.rasc.eds.starter.entity.User;
 @Component
 public class MongoUserDetailsService implements UserDetailsService {
 
-	private final MongoTemplate mongoTemplate;
+	private final Datastore ds;
 
 	@Autowired
-	public MongoUserDetailsService(MongoTemplate mongoTemplate) {
-		this.mongoTemplate = mongoTemplate;
+	public MongoUserDetailsService(Datastore ds) {
+		this.ds = ds;
 	}
 
 	@Override
 	public UserDetails loadUserByUsername(String loginName)
 			throws UsernameNotFoundException {
-		User user = this.mongoTemplate.findOne(Query.query(
-				Criteria.where(CUser.email).is(loginName).and(CUser.deleted).is(false)),
-				User.class);
+
+		User user = this.ds.createQuery(User.class).field(CUser.email).equal(loginName)
+				.field(CUser.deleted).equal(false).get();
+
 		if (user != null) {
 			return new MongoUserDetails(user);
 		}

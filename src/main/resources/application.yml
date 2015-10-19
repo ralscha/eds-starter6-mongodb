@@ -37,7 +37,8 @@ spring:
 
   data:
     mongodb:
-      uri: mongodb://localhost/starter6?w=1&wtimeoutMS=0&journal=true
+      host: localhost
+      database: starter6
 
   async:
     core-pool-size: 2

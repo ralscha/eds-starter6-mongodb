@@ -1,38 +1,46 @@
 package ch.rasc.eds.starter.config;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import java.net.UnknownHostException;
+
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.Morphia;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.mongodb.MongoDbFactory;
-import org.springframework.data.mongodb.core.convert.CustomConversions;
-import org.springframework.data.mongodb.core.convert.DbRefResolver;
-import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
-import org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper;
-import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
-import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
+import org.springframework.core.env.Environment;
+
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
+import com.mongodb.WriteConcern;
+
+import ch.rasc.eds.starter.entity.User;
 
 @Configuration
+@EnableConfigurationProperties(MongoProperties.class)
 public class MongoConfig {
 
 	@Bean
-	public MappingMongoConverter mappingMongoConverter(MongoDbFactory factory,
-			MongoMappingContext context, BeanFactory beanFactory) {
-		DbRefResolver dbRefResolver = new DefaultDbRefResolver(factory);
-		MappingMongoConverter mappingConverter = new MappingMongoConverter(dbRefResolver,
-				context);
+	public MongoClient mongoClient(MongoProperties properties, Environment environment)
+			throws UnknownHostException {
+		MongoClientOptions options = MongoClientOptions.builder()
+				.writeConcern(WriteConcern.JOURNALED).build();
 
-		// remove _class field
-		mappingConverter.setTypeMapper(new DefaultMongoTypeMapper(null));
-
-		try {
-			mappingConverter
-					.setCustomConversions(beanFactory.getBean(CustomConversions.class));
-		}
-		catch (NoSuchBeanDefinitionException ex) {
-			// Ignore
-		}
-		return mappingConverter;
+		return properties.createMongoClient(options, environment);
 	}
 
+	@Bean
+	public Morphia morphia() {
+		Morphia morphia = new Morphia();
+		morphia.mapPackageFromClass(User.class);
+		return morphia;
+	}
+
+	@Bean
+	public Datastore datastore(Morphia morphia, MongoClient mongoClient,
+			MongoProperties properties) {
+		Datastore datastore = morphia.createDatastore(mongoClient,
+				properties.getDatabase());
+		datastore.ensureIndexes();
+		return datastore;
+	}
 }

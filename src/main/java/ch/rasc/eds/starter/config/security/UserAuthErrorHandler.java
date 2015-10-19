@@ -4,13 +4,9 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Date;
 
+import org.mongodb.morphia.Datastore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
-import org.springframework.data.mongodb.core.FindAndModifyOptions;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.stereotype.Component;
 
@@ -23,16 +19,15 @@ import ch.rasc.eds.starter.entity.User;
 public class UserAuthErrorHandler
 		implements ApplicationListener<AuthenticationFailureBadCredentialsEvent> {
 
-	private final MongoTemplate mongoTemplate;
+	private final Datastore ds;
 
 	private final Integer loginLockAttempts;
 
 	private final Integer loginLockMinutes;
 
 	@Autowired
-	public UserAuthErrorHandler(MongoTemplate mongoTemplate,
-			AppProperties appProperties) {
-		this.mongoTemplate = mongoTemplate;
+	public UserAuthErrorHandler(Datastore ds, AppProperties appProperties) {
+		this.ds = ds;
 		this.loginLockAttempts = appProperties.getLoginLockAttempts();
 		this.loginLockMinutes = appProperties.getLoginLockMinutes();
 	}
@@ -50,51 +45,54 @@ public class UserAuthErrorHandler
 
 			User user = null;
 			if (principal instanceof String) {
-				user = this.mongoTemplate.findAndModify(
-						Query.query(Criteria.where(CUser.email).is(principal)
-								.and(CUser.deleted).is(false)),
-						new Update().inc(CUser.failedLogins, 1),
-						FindAndModifyOptions.options().returnNew(true).upsert(false),
-						User.class);
+				user = this.ds.findAndModify(
+						this.ds.createQuery(User.class).field(CUser.email)
+								.equal(principal).field(CUser.deleted).equal(false),
+						this.ds.createUpdateOperations(User.class).inc(CUser.failedLogins,
+								1));
 			}
 			else {
-				user = this.mongoTemplate
+				user = this.ds
 						.findAndModify(
-								Query.query(Criteria.where(CUser.id)
-										.is(((MongoUserDetails) principal)
-												.getUserDbId())),
-						new Update().inc(CUser.failedLogins, 1),
-						FindAndModifyOptions.options().returnNew(true).upsert(false),
-						User.class);
+								this.ds.createQuery(User.class).field(CUser.id)
+										.equal(((MongoUserDetails) principal)
+												.getUserDbId()),
+						this.ds.createUpdateOperations(User.class).inc(CUser.failedLogins,
+								1));
 			}
 
 			if (user != null) {
 				if (user.getFailedLogins() >= this.loginLockAttempts) {
 					if (this.loginLockMinutes != null) {
-						this.mongoTemplate.updateFirst(
-								Query.query(Criteria.where(CUser.id).is(user.getId())),
-								Update.update(CUser.lockedOutUntil,
+						this.ds.updateFirst(
+								this.ds.createQuery(User.class).field(CUser.id)
+										.equal(user.getId()),
+								this.ds.createUpdateOperations(User.class).set(
+										CUser.lockedOutUntil,
 										Date.from(ZonedDateTime.now(ZoneOffset.UTC)
 												.plusMinutes(this.loginLockMinutes)
-												.toInstant())),
-								User.class);
+												.toInstant())));
 					}
 					else {
-						this.mongoTemplate.updateFirst(
-								Query.query(Criteria.where(CUser.id).is(user.getId())),
-								Update.update(CUser.lockedOutUntil,
-										Date.from(ZonedDateTime.now(ZoneOffset.UTC)
-												.plusYears(1000).toInstant())),
-								User.class);
+						this.ds.updateFirst(
+								this.ds.createQuery(User.class).field(CUser.id)
+										.equal(user.getId()),
+								this.ds.createUpdateOperations(User.class)
+										.set(CUser.lockedOutUntil,
+												Date.from(ZonedDateTime
+														.now(ZoneOffset.UTC)
+														.plusYears(1000).toInstant())));
 					}
 				}
 			}
 			else {
-				Application.logger.warn("Unknown user login attempt: {}", principal);
+				Application.logger
+						.warn("Unknown user login attempt: {}", principal);
 			}
 		}
 		else {
-			Application.logger.warn("Invalid login attempt: {}", principal);
+			Application.logger
+					.warn("Invalid login attempt: {}", principal);
 		}
 	}
 

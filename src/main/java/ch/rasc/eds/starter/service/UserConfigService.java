@@ -8,12 +8,9 @@ import java.util.Locale;
 
 import javax.validation.Validator;
 
+import org.mongodb.morphia.Datastore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -40,16 +37,16 @@ public class UserConfigService {
 
 	private final PasswordEncoder passwordEncoder;
 
-	private final MongoTemplate mongoTemplate;
+	private final Datastore ds;
 
 	private final Validator validator;
 
 	private final MessageSource messageSource;
 
 	@Autowired
-	public UserConfigService(MongoTemplate mongoTemplate, Validator validator,
+	public UserConfigService(Datastore ds, Validator validator,
 			PasswordEncoder passwordEncoder, MessageSource messageSource) {
-		this.mongoTemplate = mongoTemplate;
+		this.ds = ds;
 		this.messageSource = messageSource;
 		this.validator = validator;
 		this.passwordEncoder = passwordEncoder;
@@ -58,8 +55,7 @@ public class UserConfigService {
 	@ExtDirectMethod(STORE_READ)
 	public ExtDirectStoreResult<UserSettings> readSettings(
 			@AuthenticationPrincipal MongoUserDetails jpaUserDetails) {
-		UserSettings userSettings = new UserSettings(
-				jpaUserDetails.getUser(this.mongoTemplate));
+		UserSettings userSettings = new UserSettings(jpaUserDetails.getUser(this.ds));
 		return new ExtDirectStoreResult<>(userSettings);
 	}
 
@@ -67,18 +63,21 @@ public class UserConfigService {
 	public String enable2f(@AuthenticationPrincipal MongoUserDetails jpaUserDetails) {
 		String randomSecret = TotpAuthUtil.randomSecret();
 
-		this.mongoTemplate.updateFirst(
-				Query.query(Criteria.where(CUser.id).is(jpaUserDetails.getUserDbId())),
-				Update.update(CUser.secret, randomSecret), User.class);
+		this.ds.updateFirst(
+				this.ds.createQuery(User.class).field(CUser.id)
+						.equal(jpaUserDetails.getUserDbId()),
+				this.ds.createUpdateOperations(User.class).set(CUser.secret,
+						randomSecret));
 
 		return randomSecret;
 	}
 
 	@ExtDirectMethod
 	public void disable2f(@AuthenticationPrincipal MongoUserDetails jpaUserDetails) {
-		this.mongoTemplate.updateFirst(
-				Query.query(Criteria.where(CUser.id).is(jpaUserDetails.getUserDbId())),
-				Update.update(CUser.secret, null), User.class);
+		this.ds.updateFirst(
+				this.ds.createQuery(User.class).field(CUser.id)
+						.equal(jpaUserDetails.getUserDbId()),
+				this.ds.createUpdateOperations(User.class).unset(CUser.secret));
 	}
 
 	@ExtDirectMethod(STORE_MODIFY)
@@ -88,7 +87,7 @@ public class UserConfigService {
 
 		List<ValidationMessages> validations = ValidationUtil
 				.validateEntity(this.validator, modifiedUserSettings);
-		User user = jpaUserDetails.getUser(this.mongoTemplate);
+		User user = jpaUserDetails.getUser(this.ds);
 
 		if (StringUtils.hasText(modifiedUserSettings.getNewPassword())
 				&& validations.isEmpty()) {
@@ -126,7 +125,7 @@ public class UserConfigService {
 			user.setLocale(modifiedUserSettings.getLocale());
 		}
 
-		this.mongoTemplate.save(user);
+		this.ds.save(user);
 
 		return new ValidationMessagesResult<>(modifiedUserSettings, validations);
 	}
@@ -135,9 +134,9 @@ public class UserConfigService {
 	public List<PersistentLogin> readPersistentLogins(
 			@AuthenticationPrincipal MongoUserDetails jpaUserDetails) {
 
-		List<PersistentLogin> persistentLogins = this.mongoTemplate.find(Query.query(
-				Criteria.where(CPersistentLogin.userId).is(jpaUserDetails.getUserDbId())),
-				PersistentLogin.class);
+		List<PersistentLogin> persistentLogins = this.ds
+				.createQuery(PersistentLogin.class).field(CPersistentLogin.userId)
+				.equal(jpaUserDetails.getUserDbId()).asList();
 
 		persistentLogins.forEach(p -> {
 			String ua = p.getUserAgent();
@@ -155,10 +154,9 @@ public class UserConfigService {
 	@ExtDirectMethod(STORE_MODIFY)
 	public void destroyPersistentLogin(String series,
 			@AuthenticationPrincipal MongoUserDetails jpaUserDetails) {
-		this.mongoTemplate.remove(
-				Query.query(Criteria.where(CPersistentLogin.series).is(series)
-						.and(CPersistentLogin.userId).is(jpaUserDetails.getUserDbId())),
-				PersistentLogin.class);
+		this.ds.delete(this.ds.createQuery(PersistentLogin.class)
+				.field(CPersistentLogin.series).equal(series)
+				.field(CPersistentLogin.userId).equal(jpaUserDetails.getUserDbId()));
 	}
 
 }

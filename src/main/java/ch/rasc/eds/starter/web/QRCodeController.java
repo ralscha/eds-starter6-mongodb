@@ -4,9 +4,9 @@ import java.io.IOException;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.mongodb.morphia.Datastore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
@@ -26,14 +26,13 @@ import ch.rasc.eds.starter.entity.User;
 @Controller
 public class QRCodeController {
 
-	private final MongoTemplate mongoTemplate;
+	private final Datastore ds;
 
 	private final String appName;
 
 	@Autowired
-	QRCodeController(MongoTemplate mongoTemplate,
-			@Value("${info.app.name}") String appName) {
-		this.mongoTemplate = mongoTemplate;
+	QRCodeController(Datastore ds, @Value("${info.app.name}") String appName) {
+		this.ds = ds;
 		this.appName = appName;
 	}
 
@@ -43,7 +42,7 @@ public class QRCodeController {
 			@AuthenticationPrincipal MongoUserDetails jpaUserDetails)
 					throws WriterException, IOException {
 
-		User user = jpaUserDetails.getUser(this.mongoTemplate);
+		User user = jpaUserDetails.getUser(this.ds);
 		if (user != null && StringUtils.hasText(user.getSecret())) {
 			response.setContentType("image/png");
 			String contents = "otpauth://totp/" + user.getEmail() + "?secret="

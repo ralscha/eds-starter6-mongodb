@@ -17,7 +17,7 @@ server:
 
 logging:
   level:
-    org.springframework.data.mongodb: DEBUG
+    org.mongodb.driver.protocol: DEBUG
     org.springframework: INFO
     org.apache: INFO
     ch: INFO

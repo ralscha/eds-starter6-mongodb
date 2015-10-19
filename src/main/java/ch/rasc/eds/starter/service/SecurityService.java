@@ -11,13 +11,9 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.mongodb.morphia.Datastore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.mongodb.core.FindAndModifyOptions;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -47,7 +43,7 @@ import ch.rasc.eds.starter.util.TotpAuthUtil;
 public class SecurityService {
 	public static final String AUTH_USER = "authUser";
 
-	private final MongoTemplate mongoTemplate;
+	private final Datastore ds;
 
 	private final PasswordEncoder passwordEncoder;
 
@@ -56,10 +52,10 @@ public class SecurityService {
 	private final ApplicationEventPublisher applicationEventPublisher;
 
 	@Autowired
-	public SecurityService(MongoTemplate mongoTemplate, PasswordEncoder passwordEncoder,
+	public SecurityService(Datastore ds, PasswordEncoder passwordEncoder,
 			MailService mailService,
 			ApplicationEventPublisher applicationEventPublisher) {
-		this.mongoTemplate = mongoTemplate;
+		this.ds = ds;
 		this.passwordEncoder = passwordEncoder;
 		this.mailService = mailService;
 		this.applicationEventPublisher = applicationEventPublisher;
@@ -70,14 +66,15 @@ public class SecurityService {
 			@AuthenticationPrincipal MongoUserDetails jpaUserDetails) {
 
 		if (jpaUserDetails != null) {
-			User user = jpaUserDetails.getUser(this.mongoTemplate);
+			User user = jpaUserDetails.getUser(this.ds);
 			UserDetailDto userDetailDto = new UserDetailDto(jpaUserDetails, user);
 
 			if (!jpaUserDetails.isPreAuth()) {
-				this.mongoTemplate.updateFirst(
-						Query.query(Criteria.where(CUser.id)
-								.is(jpaUserDetails.getUserDbId())),
-						Update.update(CUser.lastAccess, new Date()), User.class);
+				this.ds.updateFirst(
+						this.ds.createQuery(User.class).field(CUser.id)
+								.equal(jpaUserDetails.getUserDbId()),
+						this.ds.createUpdateOperations(User.class).set(CUser.lastAccess,
+								new Date()));
 			}
 
 			return userDetailDto;
@@ -92,14 +89,15 @@ public class SecurityService {
 			@AuthenticationPrincipal MongoUserDetails jpaUserDetails,
 			@RequestParam("code") int code) {
 
-		User user = jpaUserDetails.getUser(this.mongoTemplate);
+		User user = jpaUserDetails.getUser(this.ds);
 		if (user != null) {
 			if (TotpAuthUtil.verifyCode(user.getSecret(), code, 3)) {
 
-				this.mongoTemplate.updateFirst(
-						Query.query(Criteria.where(CUser.id)
-								.is(jpaUserDetails.getUserDbId())),
-						Update.update(CUser.lastAccess, new Date()), User.class);
+				this.ds.updateFirst(
+						this.ds.createQuery(User.class).field(CUser.id)
+								.equal(jpaUserDetails.getUserDbId()),
+						this.ds.createUpdateOperations(User.class).set(CUser.lastAccess,
+								new Date()));
 
 				jpaUserDetails.grantAuthorities();
 
@@ -119,11 +117,12 @@ public class SecurityService {
 					SecurityContextHolder.getContext().getAuthentication(), excp);
 			this.applicationEventPublisher.publishEvent(event);
 
-			user = jpaUserDetails.getUser(this.mongoTemplate);
+			user = jpaUserDetails.getUser(this.ds);
 			if (user.getLockedOutUntil() != null) {
 				HttpSession session = request.getSession(false);
 				if (session != null) {
-					Application.logger.debug("Invalidating session: " + session.getId());
+					Application.logger
+							.debug("Invalidating session: " + session.getId());
 					session.invalidate();
 				}
 				SecurityContext context = SecurityContextHolder.getContext();
@@ -148,10 +147,10 @@ public class SecurityService {
 			@AuthenticationPrincipal MongoUserDetails jpaUserDetails,
 			@RequestParam("password") String password) {
 
-		Query query = Query
-				.query(Criteria.where(CUser.id).is(jpaUserDetails.getUserDbId()));
-		query.fields().include(CUser.passwordHash);
-		User user = this.mongoTemplate.findOne(query, User.class);
+		// todo test
+		User user = this.ds.createQuery(User.class).field(CUser.id)
+				.equal(jpaUserDetails.getUserDbId())
+				.retrievedFields(true, CUser.passwordHash).get();
 		boolean matches = this.passwordEncoder.matches(password, user.getPasswordHash());
 		jpaUserDetails.setScreenLocked(!matches);
 		ExtDirectFormPostResult result = new ExtDirectFormPostResult(matches);
@@ -163,14 +162,14 @@ public class SecurityService {
 	public ExtDirectFormPostResult resetRequest(@RequestParam("email") String email) {
 
 		String token = UUID.randomUUID().toString();
-		User user = this.mongoTemplate.findAndModify(
-				Query.query(Criteria.where(CUser.email).is(email).and(CUser.deleted)
-						.is(false)),
-				Update.update(CUser.passwordResetTokenValidUntil,
-						Date.from(ZonedDateTime.now(ZoneOffset.UTC).plusHours(4)
-								.toInstant()))
-						.set(CUser.passwordResetToken, token),
-				FindAndModifyOptions.options().returnNew(true).upsert(false), User.class);
+		User user = this.ds.findAndModify(
+				this.ds.createQuery(User.class).field(CUser.email).equal(email)
+						.field(CUser.deleted).equal(false),
+				this.ds.createUpdateOperations(User.class)
+						.set(CUser.passwordResetTokenValidUntil,
+								Date.from(ZonedDateTime.now(ZoneOffset.UTC).plusHours(4)
+										.toInstant()))
+						.set(CUser.passwordResetToken, token));
 
 		if (user != null) {
 			this.mailService.sendPasswortResetEmail(user);
@@ -188,10 +187,9 @@ public class SecurityService {
 				&& StringUtils.hasText(newPasswordRetype)
 				&& newPassword.equals(newPasswordRetype)) {
 			String decodedToken = new String(Base64.getUrlDecoder().decode(token));
-			User user = this.mongoTemplate.findOne(
-					Query.query(Criteria.where(CUser.passwordResetToken).is(decodedToken)
-							.and(CUser.deleted).is(false).and(CUser.enabled).is(true)),
-					User.class);
+			User user = this.ds.createQuery(User.class).field(CUser.passwordResetToken)
+					.equal(decodedToken).field(CUser.deleted).equal(false)
+					.field(CUser.enabled).equal(true).get();
 
 			if (user != null && user.getPasswordResetTokenValidUntil() != null) {
 
@@ -215,7 +213,7 @@ public class SecurityService {
 				}
 				user.setPasswordResetToken(null);
 				user.setPasswordResetTokenValidUntil(null);
-				this.mongoTemplate.save(user);
+				this.ds.save(user);
 
 				return result;
 			}
@@ -227,7 +225,7 @@ public class SecurityService {
 	@ExtDirectMethod
 	@RequireAdminAuthority
 	public UserDetailDto switchUser(String userId) {
-		User switchToUser = this.mongoTemplate.findById(userId, User.class);
+		User switchToUser = this.ds.get(User.class, userId);
 		if (switchToUser != null) {
 
 			MongoUserDetails principal = new MongoUserDetails(switchToUser);

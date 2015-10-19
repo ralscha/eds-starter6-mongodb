@@ -11,12 +11,9 @@ import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.UpdateOperations;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.FindAndModifyOptions;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,6 +24,7 @@ import org.springframework.security.web.authentication.rememberme.CookieTheftExc
 import org.springframework.security.web.authentication.rememberme.InvalidCookieException;
 import org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationException;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import ch.rasc.eds.starter.Application;
 import ch.rasc.eds.starter.config.AppProperties;
@@ -76,19 +74,19 @@ public class CustomPersistentRememberMeServices extends AbstractRememberMeServic
 
 	private final SecureRandom random;
 
-	private final MongoTemplate mongoTemplate;
+	private final Datastore ds;
 
 	private final int tokenValidInSeconds;
 
 	@Autowired
-	public CustomPersistentRememberMeServices(MongoTemplate mongoTemplate,
+	public CustomPersistentRememberMeServices(Datastore ds,
 			UserDetailsService userDetailsService, AppProperties appProperties) {
 		super(appProperties.getRemembermeCookieKey(), userDetailsService);
 
 		this.tokenValidInSeconds = 60 * 60 * 24
 				* appProperties.getRemembermeCookieValidInDays();
 
-		this.mongoTemplate = mongoTemplate;
+		this.ds = ds;
 		this.random = new SecureRandom();
 	}
 
@@ -98,26 +96,34 @@ public class CustomPersistentRememberMeServices extends AbstractRememberMeServic
 
 		String series = getPersistentToken(cookieTokens);
 
-		PersistentLogin pl = this.mongoTemplate.findAndModify(
-				Query.query(Criteria.where(CPersistentLogin.series).is(series)),
-				new Update().set(CPersistentLogin.lastUsed, new Date())
-						.set(CPersistentLogin.token, generateTokenData())
-						.set(CPersistentLogin.ipAddress, request.getRemoteAddr())
-						.set(CPersistentLogin.userAgent,
-								request.getHeader(HttpHeaders.USER_AGENT)),
-				FindAndModifyOptions.options().returnNew(true), PersistentLogin.class);
+		UpdateOperations<PersistentLogin> update = this.ds
+				.createUpdateOperations(PersistentLogin.class)
+				.set(CPersistentLogin.lastUsed, new Date())
+				.set(CPersistentLogin.token, generateTokenData())
+				.set(CPersistentLogin.ipAddress, request.getRemoteAddr());
 
-		Query query = Query.query(
-				Criteria.where(CUser.id).is(pl.getUserId()).and(CUser.deleted).is(false));
-		query.fields().include(CUser.email);
-		User user = this.mongoTemplate.findOne(query, User.class);
+		String header = request.getHeader(HttpHeaders.USER_AGENT);
+		if (StringUtils.hasText(header)) {
+			update.set(CPersistentLogin.userAgent, header);
+		}
+		else {
+			update.unset(CPersistentLogin.userAgent);
+		}
+
+		PersistentLogin pl = this.ds
+				.findAndModify(this.ds.createQuery(PersistentLogin.class)
+						.field(CPersistentLogin.series).equal(series), update);
+
+		// todo test this
+		User user = this.ds.createQuery(User.class).field(CUser.id).equal(pl.getUserId())
+				.field(CUser.deleted).equal(false).retrievedFields(true, CUser.email)
+				.get();
 
 		String loginName = user.getEmail();
 		String token = pl.getToken();
 
-		Application.logger.debug(
-				"Refreshing persistent login token for user '{}', series '{}'", loginName,
-				series);
+		Application.logger.debug("Refreshing persistent login token for user '{}', series '{}'",
+				loginName, series);
 
 		addCookie(series, token, request, response);
 
@@ -137,9 +143,8 @@ public class CustomPersistentRememberMeServices extends AbstractRememberMeServic
 
 		Application.logger.debug("Creating new persistent login for user {}", loginName);
 
-		User user = this.mongoTemplate.findOne(Query.query(
-				Criteria.where(CUser.email).is(loginName).and(CUser.deleted).is(false)),
-				User.class);
+		User user = this.ds.createQuery(User.class).field(CUser.email).equal(loginName)
+				.field(CUser.deleted).equal(false).get();
 
 		if (user != null) {
 			PersistentLogin newPersistentLogin = new PersistentLogin();
@@ -150,7 +155,7 @@ public class CustomPersistentRememberMeServices extends AbstractRememberMeServic
 			newPersistentLogin.setIpAddress(request.getRemoteAddr());
 			newPersistentLogin.setUserAgent(request.getHeader(HttpHeaders.USER_AGENT));
 
-			this.mongoTemplate.save(newPersistentLogin);
+			this.ds.save(newPersistentLogin);
 
 			addCookie(newPersistentLogin.getSeries(), newPersistentLogin.getToken(),
 					request, response);
@@ -180,12 +185,10 @@ public class CustomPersistentRememberMeServices extends AbstractRememberMeServic
 				removePersistentLogin(getPersistentToken(cookieTokens));
 			}
 			catch (InvalidCookieException ice) {
-				Application.logger
-						.info("Invalid cookie, no persistent token could be deleted");
+				Application.logger.info("Invalid cookie, no persistent token could be deleted");
 			}
 			catch (RememberMeAuthenticationException rmae) {
-				Application.logger
-						.debug("No persistent token found, so no token could be deleted");
+				Application.logger.debug("No persistent token found, so no token could be deleted");
 			}
 		}
 
@@ -193,9 +196,8 @@ public class CustomPersistentRememberMeServices extends AbstractRememberMeServic
 	}
 
 	private void removePersistentLogin(String series) {
-		this.mongoTemplate.remove(
-				Query.query(Criteria.where(CPersistentLogin.series).is(series)),
-				PersistentLogin.class);
+		this.ds.delete(this.ds.createQuery(PersistentLogin.class)
+				.field(CPersistentLogin.series).equal(series));
 	}
 
 	/**
@@ -211,8 +213,7 @@ public class CustomPersistentRememberMeServices extends AbstractRememberMeServic
 		final String presentedSeries = cookieTokens[0];
 		final String presentedToken = cookieTokens[1];
 
-		PersistentLogin pl = this.mongoTemplate.findById(presentedSeries,
-				PersistentLogin.class);
+		PersistentLogin pl = this.ds.get(PersistentLogin.class, presentedSeries);
 
 		if (pl == null) {
 			// No series match, so we can't authenticate using this cookie

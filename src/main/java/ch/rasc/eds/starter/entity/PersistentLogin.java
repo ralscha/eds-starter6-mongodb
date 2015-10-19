@@ -5,10 +5,10 @@ import java.util.Date;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
+import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Indexed;
+import org.mongodb.morphia.annotations.Transient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import ch.rasc.extclassgenerator.Model;
 import ch.rasc.extclassgenerator.ModelField;
 
-@Document
+@Entity(noClassnameStored = true)
 @Model(value = "Starter.model.PersistentLogin", idProperty = "series",
 		readMethod = "userConfigService.readPersistentLogins", writeAllFields = false,
 		destroyMethod = "userConfigService.destroyPersistentLogin")
