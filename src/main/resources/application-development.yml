@@ -1,0 +1,23 @@
+spring:
+  resources:
+    cache-period:
+
+security:
+  ignored:
+    - /resources/**
+    - /build/**
+    - /ext/**
+    - /**/*.js
+    - /bootstrap.json
+
+server:
+  port: 8080
+  compression:
+    enabled: false
+
+logging:
+  level:
+    org.springframework.data.mongodb: DEBUG
+    org.springframework: INFO
+    org.apache: INFO
+    ch: INFO
