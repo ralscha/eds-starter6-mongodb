@@ -23,11 +23,9 @@
 	</parent>
 
 	<properties>
-	    <start-class>ch.rasc.eds.starter.Application</start-class>
+		<start-class>ch.rasc.eds.starter.Application</start-class>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.8</java.version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.debug>true</maven.compiler.debug>
 	</properties>
 
 	<dependencies>
@@ -129,11 +127,22 @@
 	</dependencies>
 
 	<build>
-	    <finalName>eds-starter6-mongodb</finalName>
+		<finalName>eds-starter6-mongodb</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+				    <debug>true</debug>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<compilerArgument>-parameters</compilerArgument>
+				</configuration>
 			</plugin>
 
 			<plugin>
@@ -151,7 +160,7 @@
 				<artifactId>apt-maven-plugin</artifactId>
 				<version>1.1.2</version>
 				<executions>
-				    <execution>
+					<execution>
 						<id>constantgen</id>
 						<goals>
 							<goal>process</goal>
@@ -159,8 +168,8 @@
 						<configuration>
 							<processor>ch.rasc.constgen.ConstAnnotationProcessor</processor>
 							<outputDirectory>${project.basedir}/target/generated-sources/java</outputDirectory>
-						</configuration>				    
-				    </execution>
+						</configuration>
+					</execution>
 					<execution>
 						<id>modelgen</id>
 						<phase>compile</phase>
@@ -185,7 +194,7 @@
 						<groupId>ch.rasc</groupId>
 						<artifactId>constgen</artifactId>
 						<version>1.0.0</version>
-					</dependency>				
+					</dependency>
 					<dependency>
 						<groupId>ch.rasc</groupId>
 						<artifactId>extclassgenerator</artifactId>
@@ -269,16 +278,18 @@
 									</fileset>
 								</copy>
 
-								<checksum file="${basedir}/target/classes/static/i18n-de.js" algorithm="SHA-1" property="i18n_de_sha1"/>
-								<checksum file="${basedir}/target/classes/static/i18n-en.js" algorithm="SHA-1" property="i18n_en_sha1"/>
+								<checksum file="${basedir}/target/classes/static/i18n-de.js"
+									algorithm="SHA-1" property="i18n_de_sha1" />
+								<checksum file="${basedir}/target/classes/static/i18n-en.js"
+									algorithm="SHA-1" property="i18n_en_sha1" />
 
 								<replace file="${basedir}/target/classes/static/index.html">
 									<replacefilter token="var serverUrl = 'http://localhost:8080/';"
 										value="var serverUrl = '';" />
-										
+
 									<replacefilter token="var i18nEnUrl = 'i18n-en.js';"
 										value="var i18nEnUrl = 'i18n-en.js?_dc=${i18n_en_sha1}';" />
-										
+
 									<replacefilter token="var i18nDeUrl = 'i18n-de.js';"
 										value="var i18nDeUrl = 'i18n-de.js?_dc=${i18n_de_sha1}';" />
 
