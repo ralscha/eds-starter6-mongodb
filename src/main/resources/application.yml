@@ -45,6 +45,9 @@ spring:
     queue-capacity: 200
     thread-name-prefix: starter-async-executor
 
+  main:
+    banner-mode: log 
+
 
 server:
   port: 80
@@ -59,3 +62,4 @@ logging:
     org.mongodb: WARN
     org.apache: WARN
     ch: WARN
+  file: ./app.log
