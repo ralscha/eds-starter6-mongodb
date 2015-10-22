@@ -55,6 +55,8 @@ server:
   compression:
      enabled: true
      mime-types: text/html,text/xml,text/plain,text/css,application/json,application/javascript
+  use-forward-headers: true
+
     
 logging:
   level:
