@@ -63,7 +63,6 @@ Ext.define('Starter.view.user.Form', {
 		queryMode: 'local',
 		forceSelection: true,
 		autoSelect: true,
-		delimiter: ',',
 		editable: false,
 		selectOnFocus: false
 	} ],
