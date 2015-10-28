@@ -74,8 +74,8 @@ public class UserService {
 		if (!request.getFilters().isEmpty()) {
 			StringFilter filter = (StringFilter) request.getFilters().iterator().next();
 			Criteria or = new Criteria().orOperator(
-					Criteria.where("lastName").regex(filter.getValue(), "i"),
-					Criteria.where("firstName").regex(filter.getValue(), "i"),
+					Criteria.where(CUser.lastName).regex(filter.getValue(), "i"),
+					Criteria.where(CUser.firstName).regex(filter.getValue(), "i"),
 					Criteria.where(CUser.email).regex(filter.getValue(), "i"));
 			criteria = new Criteria().andOperator(Criteria.where(CUser.deleted).is(false),
 					or);
@@ -184,7 +184,7 @@ public class UserService {
 					updatedEntity.setAuthorities(dbUser.getAuthorities());
 
 					ValidationMessages validationError = new ValidationMessages();
-					validationError.setField("authorities");
+					validationError.setField(CUser.authorities);
 					validationError.setMessage(this.messageSource
 							.getMessage("user_lastadmin_error", null, locale));
 					validationErrors.add(validationError);
