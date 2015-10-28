@@ -119,6 +119,14 @@ public class UserConfigService {
 			}
 		}
 
+		if (!isEmailUnique(user.getId(), modifiedUserSettings.getEmail())) {
+			ValidationMessages validationError = new ValidationMessages();
+			validationError.setField(CUser.email);
+			validationError.setMessage(
+					this.messageSource.getMessage("user_emailtaken", null, locale));
+			validations.add(validationError);
+		}
+
 		if (validations.isEmpty()) {
 			user.setLastName(modifiedUserSettings.getLastName());
 			user.setFirstName(modifiedUserSettings.getFirstName());
@@ -129,6 +137,14 @@ public class UserConfigService {
 		this.mongoTemplate.save(user);
 
 		return new ValidationMessagesResult<>(modifiedUserSettings, validations);
+	}
+
+	private boolean isEmailUnique(String userId, String email) {
+		Query query = Query
+				.query(Criteria.where(CUser.email).regex("^" + email + "$", "i"));
+		query.addCriteria(Criteria.where(CUser.id).ne(userId));
+
+		return !this.mongoTemplate.exists(query, User.class);
 	}
 
 	@ExtDirectMethod(STORE_READ)
