@@ -57,38 +57,38 @@ public class UserConfigService {
 
 	@ExtDirectMethod(STORE_READ)
 	public ExtDirectStoreResult<UserSettings> readSettings(
-			@AuthenticationPrincipal MongoUserDetails jpaUserDetails) {
+			@AuthenticationPrincipal MongoUserDetails userDetails) {
 		UserSettings userSettings = new UserSettings(
-				jpaUserDetails.getUser(this.mongoTemplate));
+				userDetails.getUser(this.mongoTemplate));
 		return new ExtDirectStoreResult<>(userSettings);
 	}
 
 	@ExtDirectMethod
-	public String enable2f(@AuthenticationPrincipal MongoUserDetails jpaUserDetails) {
+	public String enable2f(@AuthenticationPrincipal MongoUserDetails userDetails) {
 		String randomSecret = TotpAuthUtil.randomSecret();
 
 		this.mongoTemplate.updateFirst(
-				Query.query(Criteria.where(CUser.id).is(jpaUserDetails.getUserDbId())),
+				Query.query(Criteria.where(CUser.id).is(userDetails.getUserDbId())),
 				Update.update(CUser.secret, randomSecret), User.class);
 
 		return randomSecret;
 	}
 
 	@ExtDirectMethod
-	public void disable2f(@AuthenticationPrincipal MongoUserDetails jpaUserDetails) {
+	public void disable2f(@AuthenticationPrincipal MongoUserDetails userDetails) {
 		this.mongoTemplate.updateFirst(
-				Query.query(Criteria.where(CUser.id).is(jpaUserDetails.getUserDbId())),
+				Query.query(Criteria.where(CUser.id).is(userDetails.getUserDbId())),
 				Update.update(CUser.secret, null), User.class);
 	}
 
 	@ExtDirectMethod(STORE_MODIFY)
 	public ValidationMessagesResult<UserSettings> updateSettings(
 			UserSettings modifiedUserSettings,
-			@AuthenticationPrincipal MongoUserDetails jpaUserDetails, Locale locale) {
+			@AuthenticationPrincipal MongoUserDetails userDetails, Locale locale) {
 
 		List<ValidationMessages> validations = ValidationUtil
 				.validateEntity(this.validator, modifiedUserSettings);
-		User user = jpaUserDetails.getUser(this.mongoTemplate);
+		User user = userDetails.getUser(this.mongoTemplate);
 
 		if (StringUtils.hasText(modifiedUserSettings.getNewPassword())
 				&& validations.isEmpty()) {
@@ -149,10 +149,10 @@ public class UserConfigService {
 
 	@ExtDirectMethod(STORE_READ)
 	public List<PersistentLogin> readPersistentLogins(
-			@AuthenticationPrincipal MongoUserDetails jpaUserDetails) {
+			@AuthenticationPrincipal MongoUserDetails userDetails) {
 
 		List<PersistentLogin> persistentLogins = this.mongoTemplate.find(Query.query(
-				Criteria.where(CPersistentLogin.userId).is(jpaUserDetails.getUserDbId())),
+				Criteria.where(CPersistentLogin.userId).is(userDetails.getUserDbId())),
 				PersistentLogin.class);
 
 		persistentLogins.forEach(p -> {
@@ -170,10 +170,10 @@ public class UserConfigService {
 
 	@ExtDirectMethod(STORE_MODIFY)
 	public void destroyPersistentLogin(String series,
-			@AuthenticationPrincipal MongoUserDetails jpaUserDetails) {
+			@AuthenticationPrincipal MongoUserDetails userDetails) {
 		this.mongoTemplate.remove(
 				Query.query(Criteria.where(CPersistentLogin.series).is(series)
-						.and(CPersistentLogin.userId).is(jpaUserDetails.getUserDbId())),
+						.and(CPersistentLogin.userId).is(userDetails.getUserDbId())),
 				PersistentLogin.class);
 	}
 

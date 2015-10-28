@@ -39,11 +39,11 @@ public class NavigationService {
 
 	@ExtDirectMethod(TREE_LOAD)
 	public List<NavigationNode> getNavigation(Locale locale,
-			@AuthenticationPrincipal MongoUserDetails jpaUserDetails) {
+			@AuthenticationPrincipal MongoUserDetails userDetails) {
 
-		if (jpaUserDetails != null && !jpaUserDetails.isPreAuth()) {
+		if (userDetails != null && !userDetails.isPreAuth()) {
 			return this.rootNodes.stream()
-					.map(n -> NavigationNode.copyOf(n, jpaUserDetails.getAuthorities(),
+					.map(n -> NavigationNode.copyOf(n, userDetails.getAuthorities(),
 							locale, this.messageSource))
 					.filter(Objects::nonNull).collect(Collectors.toList());
 		}

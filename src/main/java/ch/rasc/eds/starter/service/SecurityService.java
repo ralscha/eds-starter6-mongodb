@@ -67,16 +67,16 @@ public class SecurityService {
 
 	@ExtDirectMethod
 	public UserDetailDto getAuthUser(
-			@AuthenticationPrincipal MongoUserDetails jpaUserDetails) {
+			@AuthenticationPrincipal MongoUserDetails userDetails) {
 
-		if (jpaUserDetails != null) {
-			User user = jpaUserDetails.getUser(this.mongoTemplate);
-			UserDetailDto userDetailDto = new UserDetailDto(jpaUserDetails, user);
+		if (userDetails != null) {
+			User user = userDetails.getUser(this.mongoTemplate);
+			UserDetailDto userDetailDto = new UserDetailDto(userDetails, user);
 
-			if (!jpaUserDetails.isPreAuth()) {
+			if (!userDetails.isPreAuth()) {
 				this.mongoTemplate.updateFirst(
 						Query.query(Criteria.where(CUser.id)
-								.is(jpaUserDetails.getUserDbId())),
+								.is(userDetails.getUserDbId())),
 						Update.update(CUser.lastAccess, new Date()), User.class);
 			}
 
@@ -89,27 +89,27 @@ public class SecurityService {
 	@ExtDirectMethod(ExtDirectMethodType.FORM_POST)
 	@PreAuthorize("hasAuthority('PRE_AUTH')")
 	public ExtDirectFormPostResult signin2fa(HttpServletRequest request,
-			@AuthenticationPrincipal MongoUserDetails jpaUserDetails,
+			@AuthenticationPrincipal MongoUserDetails userDetails,
 			@RequestParam("code") int code) {
 
-		User user = jpaUserDetails.getUser(this.mongoTemplate);
+		User user = userDetails.getUser(this.mongoTemplate);
 		if (user != null) {
 			if (TotpAuthUtil.verifyCode(user.getSecret(), code, 3)) {
 
 				this.mongoTemplate.updateFirst(
 						Query.query(Criteria.where(CUser.id)
-								.is(jpaUserDetails.getUserDbId())),
+								.is(userDetails.getUserDbId())),
 						Update.update(CUser.lastAccess, new Date()), User.class);
 
-				jpaUserDetails.grantAuthorities();
+				userDetails.grantAuthorities();
 
 				Authentication newAuth = new UsernamePasswordAuthenticationToken(
-						jpaUserDetails, null, jpaUserDetails.getAuthorities());
+						userDetails, null, userDetails.getAuthorities());
 				SecurityContextHolder.getContext().setAuthentication(newAuth);
 
 				ExtDirectFormPostResult result = new ExtDirectFormPostResult();
 				result.addResultProperty(AUTH_USER,
-						new UserDetailDto(jpaUserDetails, user));
+						new UserDetailDto(userDetails, user));
 				return result;
 			}
 
@@ -119,7 +119,7 @@ public class SecurityService {
 					SecurityContextHolder.getContext().getAuthentication(), excp);
 			this.applicationEventPublisher.publishEvent(event);
 
-			user = jpaUserDetails.getUser(this.mongoTemplate);
+			user = userDetails.getUser(this.mongoTemplate);
 			if (user.getLockedOutUntil() != null) {
 				HttpSession session = request.getSession(false);
 				if (session != null) {
@@ -138,22 +138,22 @@ public class SecurityService {
 	@ExtDirectMethod
 	@RequireAnyAuthority
 	public void enableScreenLock(
-			@AuthenticationPrincipal MongoUserDetails jpaUserDetails) {
-		jpaUserDetails.setScreenLocked(true);
+			@AuthenticationPrincipal MongoUserDetails userDetails) {
+		userDetails.setScreenLocked(true);
 	}
 
 	@ExtDirectMethod(ExtDirectMethodType.FORM_POST)
 	@RequireAnyAuthority
 	public ExtDirectFormPostResult disableScreenLock(
-			@AuthenticationPrincipal MongoUserDetails jpaUserDetails,
+			@AuthenticationPrincipal MongoUserDetails userDetails,
 			@RequestParam("password") String password) {
 
 		Query query = Query
-				.query(Criteria.where(CUser.id).is(jpaUserDetails.getUserDbId()));
+				.query(Criteria.where(CUser.id).is(userDetails.getUserDbId()));
 		query.fields().include(CUser.passwordHash);
 		User user = this.mongoTemplate.findOne(query, User.class);
 		boolean matches = this.passwordEncoder.matches(password, user.getPasswordHash());
-		jpaUserDetails.setScreenLocked(!matches);
+		userDetails.setScreenLocked(!matches);
 		ExtDirectFormPostResult result = new ExtDirectFormPostResult(matches);
 
 		return result;

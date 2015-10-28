@@ -40,10 +40,10 @@ public class QRCodeController {
 	@RequireAnyAuthority
 	@RequestMapping(value = "/qr", method = RequestMethod.GET)
 	public void qrcode(HttpServletResponse response,
-			@AuthenticationPrincipal MongoUserDetails jpaUserDetails)
+			@AuthenticationPrincipal MongoUserDetails userDetails)
 					throws WriterException, IOException {
 
-		User user = jpaUserDetails.getUser(this.mongoTemplate);
+		User user = userDetails.getUser(this.mongoTemplate);
 		if (user != null && StringUtils.hasText(user.getSecret())) {
 			response.setContentType("image/png");
 			String contents = "otpauth://totp/" + user.getEmail() + "?secret="

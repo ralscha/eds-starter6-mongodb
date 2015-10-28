@@ -47,22 +47,22 @@ public class JsonAuthSuccessHandler implements AuthenticationSuccessHandler {
 		Map<String, Object> result = new HashMap<>();
 		result.put("success", true);
 
-		MongoUserDetails jpaUserDetails = (MongoUserDetails) authentication
+		MongoUserDetails userDetails = (MongoUserDetails) authentication
 				.getPrincipal();
-		if (jpaUserDetails != null) {
+		if (userDetails != null) {
 			User user;
-			if (!jpaUserDetails.isPreAuth()) {
+			if (!userDetails.isPreAuth()) {
 				user = this.mongoTemplate.findAndModify(
 						Query.query(Criteria.where(CUser.id)
-								.is(jpaUserDetails.getUserDbId())),
+								.is(userDetails.getUserDbId())),
 						Update.update(CUser.lastAccess, new Date()), User.class);
 			}
 			else {
-				user = this.mongoTemplate.findById(jpaUserDetails.getUserDbId(),
+				user = this.mongoTemplate.findById(userDetails.getUserDbId(),
 						User.class);
 			}
 			result.put(SecurityService.AUTH_USER,
-					new UserDetailDto(jpaUserDetails, user));
+					new UserDetailDto(userDetails, user));
 		}
 
 		CsrfCookieFilter.addCsrfCookie(request, response);
