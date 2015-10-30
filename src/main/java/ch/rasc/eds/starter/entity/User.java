@@ -19,7 +19,8 @@ import ch.rasc.extclassgenerator.ModelField;
 @Document
 @Model(value = "Starter.model.User", readMethod = "userService.read",
 		createMethod = "userService.update", updateMethod = "userService.update",
-		destroyMethod = "userService.destroy", paging = true, identifier = "uuid")
+		destroyMethod = "userService.destroy", rootProperty = "records",
+		identifier = "uuid")
 @JsonInclude(Include.NON_NULL)
 public class User {
 
