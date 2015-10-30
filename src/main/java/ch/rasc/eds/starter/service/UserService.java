@@ -161,6 +161,7 @@ public class UserService {
 		List<ValidationMessages> validationErrors = new ArrayList<>();
 
 		if (dbUser != null && (!updatedEntity.isEnabled()
+				|| updatedEntity.getAuthorities() == null
 				|| !updatedEntity.getAuthorities().contains(Authority.ADMIN.name()))) {
 			if (isLastAdmin(updatedEntity.getId())) {
 
