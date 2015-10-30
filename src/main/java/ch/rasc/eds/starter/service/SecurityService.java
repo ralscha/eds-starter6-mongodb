@@ -75,8 +75,8 @@ public class SecurityService {
 
 			if (!userDetails.isPreAuth()) {
 				this.mongoTemplate.updateFirst(
-						Query.query(Criteria.where(CUser.id)
-								.is(userDetails.getUserDbId())),
+						Query.query(
+								Criteria.where(CUser.id).is(userDetails.getUserDbId())),
 						Update.update(CUser.lastAccess, new Date()), User.class);
 			}
 
@@ -97,8 +97,8 @@ public class SecurityService {
 			if (TotpAuthUtil.verifyCode(user.getSecret(), code, 3)) {
 
 				this.mongoTemplate.updateFirst(
-						Query.query(Criteria.where(CUser.id)
-								.is(userDetails.getUserDbId())),
+						Query.query(
+								Criteria.where(CUser.id).is(userDetails.getUserDbId())),
 						Update.update(CUser.lastAccess, new Date()), User.class);
 
 				userDetails.grantAuthorities();
@@ -108,8 +108,7 @@ public class SecurityService {
 				SecurityContextHolder.getContext().setAuthentication(newAuth);
 
 				ExtDirectFormPostResult result = new ExtDirectFormPostResult();
-				result.addResultProperty(AUTH_USER,
-						new UserDetailDto(userDetails, user));
+				result.addResultProperty(AUTH_USER, new UserDetailDto(userDetails, user));
 				return result;
 			}
 
@@ -137,8 +136,7 @@ public class SecurityService {
 
 	@ExtDirectMethod
 	@RequireAnyAuthority
-	public void enableScreenLock(
-			@AuthenticationPrincipal MongoUserDetails userDetails) {
+	public void enableScreenLock(@AuthenticationPrincipal MongoUserDetails userDetails) {
 		userDetails.setScreenLocked(true);
 	}
 
@@ -148,8 +146,7 @@ public class SecurityService {
 			@AuthenticationPrincipal MongoUserDetails userDetails,
 			@RequestParam("password") String password) {
 
-		Query query = Query
-				.query(Criteria.where(CUser.id).is(userDetails.getUserDbId()));
+		Query query = Query.query(Criteria.where(CUser.id).is(userDetails.getUserDbId()));
 		query.fields().include(CUser.passwordHash);
 		User user = this.mongoTemplate.findOne(query, User.class);
 		boolean matches = this.passwordEncoder.matches(password, user.getPasswordHash());
