@@ -124,14 +124,29 @@
 			</exclusions>
 		</dependency>
 
+		<dependency>
+			<groupId>ch.rasc</groupId>
+			<artifactId>constgen</artifactId>
+			<version>1.0.1</version>
+			<optional>true</optional>
+		</dependency>
 	</dependencies>
 
 	<build>
 		<finalName>eds-starter6-mongodb</finalName>
 		<plugins>
+		
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>ch.rasc</groupId>
+							<artifactId>constgen</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
 			</plugin>
 
 			<plugin>
@@ -161,16 +176,6 @@
 				<version>1.1.2</version>
 				<executions>
 					<execution>
-						<id>constantgen</id>
-						<goals>
-							<goal>process</goal>
-						</goals>
-						<configuration>
-							<processor>ch.rasc.constgen.ConstAnnotationProcessor</processor>
-							<outputDirectory>${project.basedir}/target/generated-sources/java</outputDirectory>
-						</configuration>
-					</execution>
-					<execution>
 						<id>modelgen</id>
 						<phase>compile</phase>
 						<goals>
@@ -190,11 +195,6 @@
 					</execution>
 				</executions>
 				<dependencies>
-					<dependency>
-						<groupId>ch.rasc</groupId>
-						<artifactId>constgen</artifactId>
-						<version>1.0.0</version>
-					</dependency>
 					<dependency>
 						<groupId>ch.rasc</groupId>
 						<artifactId>extclassgenerator</artifactId>
