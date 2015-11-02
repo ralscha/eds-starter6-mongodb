@@ -12,7 +12,7 @@
 	<version>0.0.1</version>
 	<packaging>jar</packaging>
 
-	<name>edsstarter</name>
+	<name>Starter</name>
 	<description>ExtJS 6 Classic Starter Application with Spring and Ext Direct</description>
 
 	<parent>
@@ -26,6 +26,8 @@
 		<start-class>ch.rasc.eds.starter.Application</start-class>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.8</java.version>
+		<maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssZ</maven.build.timestamp.format>
+		<build.timestamp>${maven.build.timestamp}</build.timestamp>		
 	</properties>
 
 	<dependencies>
