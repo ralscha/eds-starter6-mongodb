@@ -13,7 +13,7 @@ Ext.define('Starter.view.user.Controller', {
 	},
 
 	erase: function() {
-		this.eraseObject(this.getSelectedObject().get('loginName'), null, function() {
+		this.eraseObject(this.getSelectedObject().get('email'), null, function() {
 			Starter.Util.errorToast(i18n.user_lastadmin_error);
 		}, this);
 	},
