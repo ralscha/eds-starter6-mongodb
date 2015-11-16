@@ -2,6 +2,7 @@ package ch.rasc.eds.starter.schedule;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -29,7 +30,7 @@ public class DisableInactiveUser {
 		// Inactivate users that have a lastAccess timestamp that is older than one year
 		ZonedDateTime oneYearAgo = ZonedDateTime.now(ZoneOffset.UTC).minusYears(1);
 		this.mongoDb.getCollection(User.class).updateMany(
-				Filters.lte(CUser.lastAccess, oneYearAgo),
+				Filters.lte(CUser.lastAccess, Date.from(oneYearAgo.toInstant())),
 				Updates.set(CUser.enabled, false));
 	}
 
