@@ -162,7 +162,7 @@ List<User> users = StreamSupport.stream(find.spliterator(), false)
 			updates.add(Updates.set(CUser.lastName, updatedEntity.getLastName()));
 			updates.add(Updates.set(CUser.firstName, updatedEntity.getFirstName()));
 			updates.add(Updates.set(CUser.email, updatedEntity.getEmail()));
-			updates.add(Updates.set(CUser.authorities, updatedEntity.getAuthorities()));
+			//todo updates.add(Updates.set(CUser.authorities, updatedEntity.getAuthorities()));
 			updates.add(Updates.set(CUser.passwordHash, updatedEntity.getPasswordHash()));
 			updates.add(Updates.set(CUser.locale, updatedEntity.getLocale()));
 			updates.add(Updates.set(CUser.enabled, updatedEntity.isEnabled()));

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import ch.rasc.bsoncodec.annotation.BsonDocument;
+import ch.rasc.bsoncodec.annotation.Id;
 import ch.rasc.bsoncodec.annotation.Transient;
 import ch.rasc.extclassgenerator.Model;
 import ch.rasc.extclassgenerator.ModelField;
@@ -24,6 +25,7 @@ import ch.rasc.extclassgenerator.ModelField;
 public class User {
 
 	@ModelField(useNull = true, convert = "null")
+	@Id
 	private String id;
 
 	@NotBlank(message = "{fieldrequired}")
