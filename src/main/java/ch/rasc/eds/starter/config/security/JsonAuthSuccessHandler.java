@@ -52,21 +52,15 @@ public class JsonAuthSuccessHandler implements AuthenticationSuccessHandler {
 			User user;
 			if (!userDetails.isPreAuth()) {
 
-				user = mongoDb.getCollection(User.class).findOneAndUpdate(
+				user = this.mongoDb.getCollection(User.class).findOneAndUpdate(
 						Filters.eq(CUser.id, userDetails.getUserDbId()),
 						Updates.set(CUser.lastAccess, new Date()),
 						new FindOneAndUpdateOptions()
 								.returnDocument(ReturnDocument.AFTER));
-
-				// user = this.mongoDb.findAndModify(
-				// Query.query(
-				// Criteria.where(CUser.id).is(userDetails.getUserDbId())),
-				// Update.update(CUser.lastAccess, new Date()), User.class);
 			}
 			else {
-				user = mongoDb.getCollection(User.class)
+				user = this.mongoDb.getCollection(User.class)
 						.find(Filters.eq(CUser.id, userDetails.getUserDbId())).first();
-				// user = this.mongoDb.findById(userDetails.getUserDbId(), User.class);
 			}
 			result.put(SecurityService.AUTH_USER, new UserDetailDto(userDetails, user));
 		}

@@ -28,13 +28,9 @@ public class DisableInactiveUser {
 	public void doCleanup() {
 		// Inactivate users that have a lastAccess timestamp that is older than one year
 		ZonedDateTime oneYearAgo = ZonedDateTime.now(ZoneOffset.UTC).minusYears(1);
-		this.mongoDb.getCollection(User.class)
-		   .updateMany(Filters.lte(CUser.lastAccess, oneYearAgo),
-				   Updates.set(CUser.enabled, false));
-//		this.mongoDb.updateMulti(
-//				Query.query(Criteria.where(CUser.lastAccess).lte(oneYearAgo)),
-//				Update.update(CUser.enabled, false), User.class);
-
+		this.mongoDb.getCollection(User.class).updateMany(
+				Filters.lte(CUser.lastAccess, oneYearAgo),
+				Updates.set(CUser.enabled, false));
 	}
 
 }

@@ -20,14 +20,15 @@ public class MongoConfig {
 		MongoClientURI uri = new MongoClientURI(properties.getUri());
 		return new MongoClient(uri);
 	}
-	
+
 	@Bean
-	public MongoDatabase mongoDatabase(MongoClient mongoClient, MongoProperties properties) {
+	public MongoDatabase mongoDatabase(MongoClient mongoClient,
+			MongoProperties properties) {
 		MongoClientURI uri = new MongoClientURI(properties.getUri());
-		return mongoClient.getDatabase(uri.getDatabase())				
+		return mongoClient.getDatabase(uri.getDatabase())
 				.withCodecRegistry(CodecRegistries.fromRegistries(
-                        MongoClient.getDefaultCodecRegistry(),
-                        CodecRegistries.fromProviders(new PojoCodecProvider())));
+						MongoClient.getDefaultCodecRegistry(),
+						CodecRegistries.fromProviders(new PojoCodecProvider())));
 	}
 
 }

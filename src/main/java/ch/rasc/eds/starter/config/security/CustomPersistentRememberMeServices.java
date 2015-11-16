@@ -100,33 +100,22 @@ public class CustomPersistentRememberMeServices extends AbstractRememberMeServic
 
 		String series = getPersistentToken(cookieTokens);
 
-//		PersistentLogin pl = this.mongoDb.findAndModify(
-//				Query.query(Criteria.where(CPersistentLogin.series).is(series)),
-//				new Update().set(CPersistentLogin.lastUsed, new Date())
-//						.set(CPersistentLogin.token, generateTokenData())
-//						.set(CPersistentLogin.ipAddress, request.getRemoteAddr())
-//						.set(CPersistentLogin.userAgent,
-//								request.getHeader(HttpHeaders.USER_AGENT)),
-//				FindAndModifyOptions.options().returnNew(true), PersistentLogin.class);
+		PersistentLogin pl = this.mongoDb.getCollection(PersistentLogin.class)
+				.findOneAndUpdate(Filters.eq(CPersistentLogin.series, series),
+						Updates.combine(
+								Updates.set(CPersistentLogin.lastUsed, new Date()),
+								Updates.set(CPersistentLogin.token, generateTokenData()),
+								Updates.set(CPersistentLogin.ipAddress,
+										request.getRemoteAddr()),
+								Updates.set(CPersistentLogin.userAgent,
+										request.getHeader(HttpHeaders.USER_AGENT))),
+						new FindOneAndUpdateOptions()
+								.returnDocument(ReturnDocument.AFTER));
 
-		PersistentLogin pl = this.mongoDb.getCollection(PersistentLogin.class).findOneAndUpdate(
-				Filters.eq(CPersistentLogin.series, series),				
-				Updates.combine(Updates.set(CPersistentLogin.lastUsed, new Date()),
-						Updates.set(CPersistentLogin.token, generateTokenData()),
-						Updates.set(CPersistentLogin.ipAddress, request.getRemoteAddr()),
-						Updates.set(CPersistentLogin.userAgent,
-								request.getHeader(HttpHeaders.USER_AGENT))), 				
-				new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
-		
 		User user = this.mongoDb.getCollection(User.class)
 				.find(Filters.and(Filters.eq(CUser.id, pl.getUserId()),
-						Filters.eq(CUser.deleted, false))).projection(Projections.include(CUser.email))
-				.first();
-		
-//		Query query = Query.query(
-//				Criteria.where(CUser.id).is(pl.getUserId()).and(CUser.deleted).is(false));
-//		query.fields().include(CUser.email);
-//		User user = this.mongoDb.findOne(query, User.class);
+						Filters.eq(CUser.deleted, false)))
+				.projection(Projections.include(CUser.email)).first();
 
 		String loginName = user.getEmail();
 		String token = pl.getToken();
@@ -153,15 +142,11 @@ public class CustomPersistentRememberMeServices extends AbstractRememberMeServic
 
 		Application.logger.debug("Creating new persistent login for user {}", loginName);
 
-//		User user = this.mongoDb.findOne(Query.query(
-//				Criteria.where(CUser.email).is(loginName).and(CUser.deleted).is(false)),
-//				User.class);
-
 		User user = this.mongoDb.getCollection(User.class)
 				.find(Filters.and(Filters.eq(CUser.email, loginName),
 						Filters.eq(CUser.deleted, false)))
 				.first();
-		
+
 		if (user != null) {
 			PersistentLogin newPersistentLogin = new PersistentLogin();
 			newPersistentLogin.setSeries(generateSeriesData());
@@ -170,9 +155,8 @@ public class CustomPersistentRememberMeServices extends AbstractRememberMeServic
 			newPersistentLogin.setLastUsed(new Date());
 			newPersistentLogin.setIpAddress(request.getRemoteAddr());
 			newPersistentLogin.setUserAgent(request.getHeader(HttpHeaders.USER_AGENT));
-
-			this.mongoDb.getCollection(PersistentLogin.class).insertOne(newPersistentLogin);
-			//this.mongoDb.save(newPersistentLogin);
+			this.mongoDb.getCollection(PersistentLogin.class)
+					.insertOne(newPersistentLogin);
 
 			addCookie(newPersistentLogin.getSeries(), newPersistentLogin.getToken(),
 					request, response);
@@ -215,10 +199,8 @@ public class CustomPersistentRememberMeServices extends AbstractRememberMeServic
 	}
 
 	private void removePersistentLogin(String series) {
-		this.mongoDb.getCollection(PersistentLogin.class).deleteOne(Filters.eq(CPersistentLogin.series, series));
-//		this.mongoDb.remove(
-//				Query.query(Criteria.where(CPersistentLogin.series).is(series)),
-//				PersistentLogin.class);
+		this.mongoDb.getCollection(PersistentLogin.class)
+				.deleteOne(Filters.eq(CPersistentLogin.series, series));
 	}
 
 	/**
@@ -234,9 +216,8 @@ public class CustomPersistentRememberMeServices extends AbstractRememberMeServic
 		final String presentedSeries = cookieTokens[0];
 		final String presentedToken = cookieTokens[1];
 
-		PersistentLogin pl = this.mongoDb.getCollection(PersistentLogin.class).find(Filters.eq(CPersistentLogin.series, presentedSeries)).first();
-//		PersistentLogin pl = this.mongoDb.findById(presentedSeries,
-//				PersistentLogin.class);
+		PersistentLogin pl = this.mongoDb.getCollection(PersistentLogin.class)
+				.find(Filters.eq(CPersistentLogin.series, presentedSeries)).first();
 
 		if (pl == null) {
 			// No series match, so we can't authenticate using this cookie

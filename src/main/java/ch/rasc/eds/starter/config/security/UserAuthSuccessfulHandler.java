@@ -29,14 +29,9 @@ public class UserAuthSuccessfulHandler
 		if (principal instanceof MongoUserDetails) {
 			String userId = ((MongoUserDetails) principal).getUserDbId();
 
-			mongoDb.getCollection(User.class).updateOne(Filters.eq(CUser.id, userId),
-					Updates.combine(Updates.unset(CUser.lockedOutUntil), Updates.set(CUser.failedLogins, 0)) );
-			
-//			this.mongoDb.updateFirst(
-//					Query.query(Criteria.where(CUser.id).is(userId)),
-//					Update.update(CUser.lockedOutUntil, null).set(CUser.failedLogins, 0),
-//					User.class);
-
+			this.mongoDb.getCollection(User.class).updateOne(Filters.eq(CUser.id, userId),
+					Updates.combine(Updates.unset(CUser.lockedOutUntil),
+							Updates.set(CUser.failedLogins, 0)));
 		}
 	}
 }

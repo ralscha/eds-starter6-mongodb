@@ -8,7 +8,7 @@ public class MongoProperties {
 	private String uri = "mongodb://localhost";
 
 	public String getUri() {
-		return uri;
+		return this.uri;
 	}
 
 	public void setUri(String uri) {

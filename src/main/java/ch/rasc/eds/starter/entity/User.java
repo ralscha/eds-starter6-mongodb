@@ -35,7 +35,7 @@ public class User {
 	private String firstName;
 
 	@Email(message = "{invalidemail}")
-	//todo @Indexed(unique = true)
+	// todo @Indexed(unique = true)
 	private String email;
 
 	private List<String> authorities;

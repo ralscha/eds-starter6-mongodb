@@ -4,15 +4,11 @@ import static ch.ralscha.extdirectspring.annotation.ExtDirectMethodType.STORE_MO
 import static ch.ralscha.extdirectspring.annotation.ExtDirectMethodType.STORE_READ;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import javax.management.Query;
 import javax.validation.Validator;
 
 import org.bson.conversions.Bson;
@@ -66,8 +62,7 @@ public class UserConfigService {
 	@ExtDirectMethod(STORE_READ)
 	public ExtDirectStoreResult<UserSettings> readSettings(
 			@AuthenticationPrincipal MongoUserDetails userDetails) {
-		UserSettings userSettings = new UserSettings(
-				userDetails.getUser(this.mongoDb));
+		UserSettings userSettings = new UserSettings(userDetails.getUser(this.mongoDb));
 		return new ExtDirectStoreResult<>(userSettings);
 	}
 
@@ -75,20 +70,18 @@ public class UserConfigService {
 	public String enable2f(@AuthenticationPrincipal MongoUserDetails userDetails) {
 		String randomSecret = TotpAuthUtil.randomSecret();
 
-		this.mongoDb.getCollection(User.class).updateOne(Filters.eq(CUser.id, userDetails.getUserDbId()), Updates.set(CUser.secret, randomSecret));
-//		this.mongoDb.updateFirst(
-//				Query.query(Criteria.where(CUser.id).is(userDetails.getUserDbId())),
-//				Update.update(CUser.secret, randomSecret), User.class);
+		this.mongoDb.getCollection(User.class).updateOne(
+				Filters.eq(CUser.id, userDetails.getUserDbId()),
+				Updates.set(CUser.secret, randomSecret));
 
 		return randomSecret;
 	}
 
 	@ExtDirectMethod
 	public void disable2f(@AuthenticationPrincipal MongoUserDetails userDetails) {
-		this.mongoDb.getCollection(User.class).updateOne(Filters.eq(CUser.id, userDetails.getUserDbId()), Updates.unset(CUser.secret));
-//		this.mongoDb.updateFirst(
-//				Query.query(Criteria.where(CUser.id).is(userDetails.getUserDbId())),
-//				Update.update(CUser.secret, null), User.class);
+		this.mongoDb.getCollection(User.class).updateOne(
+				Filters.eq(CUser.id, userDetails.getUserDbId()),
+				Updates.unset(CUser.secret));
 	}
 
 	@ExtDirectMethod(STORE_MODIFY)
@@ -100,7 +93,7 @@ public class UserConfigService {
 				.validateEntity(this.validator, modifiedUserSettings);
 		User user = userDetails.getUser(this.mongoDb);
 		List<Bson> updates = new ArrayList<>();
-		
+
 		if (StringUtils.hasText(modifiedUserSettings.getNewPassword())
 				&& validations.isEmpty()) {
 			if (this.passwordEncoder.matches(modifiedUserSettings.getCurrentPassword(),
@@ -144,7 +137,7 @@ public class UserConfigService {
 			user.setFirstName(modifiedUserSettings.getFirstName());
 			user.setEmail(modifiedUserSettings.getEmail());
 			user.setLocale(modifiedUserSettings.getLocale());
-			
+
 			updates.add(Updates.set(CUser.lastName, user.getLastName()));
 			updates.add(Updates.set(CUser.firstName, user.getFirstName()));
 			updates.add(Updates.set(CUser.email, user.getEmail()));
@@ -152,62 +145,47 @@ public class UserConfigService {
 		}
 
 		if (!updates.isEmpty()) {
-			mongoDb.getCollection(User.class).updateOne(Filters.eq(CUser.id, user.getId()), Updates.combine(updates));
+			this.mongoDb.getCollection(User.class).updateOne(
+					Filters.eq(CUser.id, user.getId()), Updates.combine(updates));
 		}
-		//this.mongoDb.save(user);
 
 		return new ValidationMessagesResult<>(modifiedUserSettings, validations);
 	}
 
-//	private boolean isEmailUnique(String userId, String email) {
-//		Query query = Query
-//				.query(Criteria.where(CUser.email).regex("^" + email + "$", "i"));
-//		query.addCriteria(Criteria.where(CUser.id).ne(userId));
-//
-//		return !this.mongoDb.exists(query, User.class);
-//	}
-	
 	private boolean isEmailUnique(String userId, String email) {
-		return this.mongoDb.getCollection(User.class).count(
-				Filters.and(
-				Filters.regex(CUser.email, "^" + email + "$", "i"),
-				Filters.ne(CUser.id, userId)))==0;
-	}	
-	
+		return this.mongoDb.getCollection(User.class)
+				.count(Filters.and(Filters.regex(CUser.email, "^" + email + "$", "i"),
+						Filters.ne(CUser.id, userId))) == 0;
+	}
 
 	@ExtDirectMethod(STORE_READ)
 	public List<PersistentLogin> readPersistentLogins(
 			@AuthenticationPrincipal MongoUserDetails userDetails) {
 
-		return StreamSupport.stream(this.mongoDb.getCollection(PersistentLogin.class)
-		  .find(Filters.eq(CPersistentLogin.userId, userDetails.getUserDbId())).spliterator(), false)
-//		List<PersistentLogin> persistentLogins = this.mongoDb.find(Query.query(
-//				Criteria.where(CPersistentLogin.userId).is(userDetails.getUserDbId())),
-//				PersistentLogin.class);
+		return StreamSupport
+				.stream(this.mongoDb.getCollection(PersistentLogin.class)
+						.find(Filters.eq(CPersistentLogin.userId,
+								userDetails.getUserDbId()))
+						.spliterator(), false)
+				.peek(p -> {
+					String ua = p.getUserAgent();
+					if (StringUtils.hasText(ua)) {
+						UserAgent userAgent = UserAgent.parseUserAgentString(ua);
+						p.setUserAgentName(userAgent.getBrowser().getGroup().getName());
+						p.setUserAgentVersion(
+								userAgent.getBrowserVersion().getMajorVersion());
+						p.setOperatingSystem(userAgent.getOperatingSystem().getName());
+					}
+				}).collect(Collectors.toList());
 
-		.peek(p -> {
-			String ua = p.getUserAgent();
-			if (StringUtils.hasText(ua)) {
-				UserAgent userAgent = UserAgent.parseUserAgentString(ua);
-				p.setUserAgentName(userAgent.getBrowser().getGroup().getName());
-				p.setUserAgentVersion(userAgent.getBrowserVersion().getMajorVersion());
-				p.setOperatingSystem(userAgent.getOperatingSystem().getName());
-			}
-		}).collect(Collectors.toList());
-
-		//return persistentLogins;
 	}
 
 	@ExtDirectMethod(STORE_MODIFY)
 	public void destroyPersistentLogin(String series,
 			@AuthenticationPrincipal MongoUserDetails userDetails) {
-		this.mongoDb.getCollection(PersistentLogin.class).deleteOne(
-				Filters.and(Filters.eq(CPersistentLogin.series, series),
-				Filters.eq(CPersistentLogin.userId, userDetails.getUserDbId())));
-//		this.mongoDb.remove(
-//				Query.query(Criteria.where(CPersistentLogin.series).is(series)
-//						.and(CPersistentLogin.userId).is(userDetails.getUserDbId())),
-//				PersistentLogin.class);
+		this.mongoDb.getCollection(PersistentLogin.class)
+				.deleteOne(Filters.and(Filters.eq(CPersistentLogin.series, series),
+						Filters.eq(CPersistentLogin.userId, userDetails.getUserDbId())));
 	}
 
 }

@@ -31,8 +31,7 @@ public class QRCodeController {
 	private final String appName;
 
 	@Autowired
-	QRCodeController(MongoDb mongoDb,
-			@Value("${info.app.name}") String appName) {
+	QRCodeController(MongoDb mongoDb, @Value("${info.app.name}") String appName) {
 		this.mongoDb = mongoDb;
 		this.appName = appName;
 	}

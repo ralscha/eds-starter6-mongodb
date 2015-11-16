@@ -19,7 +19,7 @@ public class MongoDb {
 	}
 
 	public MongoDatabase getMongoDatabase() {
-		return mongoDatabase;
+		return this.mongoDatabase;
 	}
 
 	public <T> MongoCollection<T> getCollection(Class<T> documentClass) {
