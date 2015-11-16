@@ -25,7 +25,6 @@ public class PersistentLogin {
 	@Id
 	private String series;
 
-	// todo @Indexed
 	private String userId;
 
 	@JsonIgnore
