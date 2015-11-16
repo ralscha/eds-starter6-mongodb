@@ -7,15 +7,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
 
+import com.mongodb.client.model.Filters;
+
+import ch.rasc.eds.starter.config.MongoDb;
 import ch.rasc.eds.starter.entity.CUser;
 import ch.rasc.eds.starter.entity.User;
 
@@ -97,10 +97,12 @@ public class MongoUserDetails implements UserDetails {
 		return this.email;
 	}
 
-	public User getUser(MongoTemplate mongoTemplate) {
-		User user = mongoTemplate.findOne(Query.query(
-				Criteria.where(CUser.id).is(getUserDbId()).and(CUser.deleted).is(false)),
-				User.class);
+	public User getUser(MongoDb mongoDb) {
+		User user = mongoDb.getCollection(User.class)
+				.find(Filters.and(Filters.eq(CUser.id, getUserDbId()),
+						Filters.eq(CUser.deleted, false)))
+				.first();
+
 		if (user != null) {
 			user.setTwoFactorAuth(StringUtils.hasText(user.getSecret()));
 			return user;

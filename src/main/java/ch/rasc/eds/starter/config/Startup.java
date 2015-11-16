@@ -4,9 +4,10 @@ import java.util.Arrays;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import com.mongodb.client.MongoCollection;
 
 import ch.rasc.eds.starter.entity.Authority;
 import ch.rasc.eds.starter.entity.User;
@@ -14,20 +15,21 @@ import ch.rasc.eds.starter.entity.User;
 @Component
 class Startup {
 
-	private final MongoTemplate mongoTemplate;
+	private final MongoDb mongoDb;
 
 	private final PasswordEncoder passwordEncoder;
 
 	@Autowired
-	public Startup(MongoTemplate mongoTemplate, PasswordEncoder passwordEncoder) {
-		this.mongoTemplate = mongoTemplate;
+	public Startup(MongoDb mongoDb, PasswordEncoder passwordEncoder) {
+		this.mongoDb = mongoDb;
 		this.passwordEncoder = passwordEncoder;
 		init();
 	}
 
 	private void init() {
 
-		if (this.mongoTemplate.count(null, User.class) == 0) {
+		MongoCollection<User> userCollection = this.mongoDb.getCollection(User.class);
+		if (userCollection.count() == 0) {
 			// admin user
 			User adminUser = new User();
 			adminUser.setId(UUID.randomUUID().toString());
@@ -39,7 +41,7 @@ class Startup {
 			adminUser.setEnabled(true);
 			adminUser.setDeleted(false);
 			adminUser.setAuthorities(Arrays.asList(Authority.ADMIN.name()));
-			this.mongoTemplate.save(adminUser);
+			userCollection.insertOne(adminUser);
 
 			// normal user
 			User normalUser = new User();
@@ -52,7 +54,7 @@ class Startup {
 			normalUser.setEnabled(true);
 			adminUser.setDeleted(false);
 			normalUser.setAuthorities(Arrays.asList(Authority.USER.name()));
-			this.mongoTemplate.save(normalUser);
+			userCollection.insertOne(normalUser);
 		}
 
 	}

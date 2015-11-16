@@ -4,33 +4,36 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
+
+import ch.rasc.eds.starter.config.MongoDb;
 import ch.rasc.eds.starter.entity.CUser;
 import ch.rasc.eds.starter.entity.User;
 
 @Component
 public class DisableInactiveUser {
 
-	private final MongoTemplate mongoTemplate;
+	private final MongoDb mongoDb;
 
 	@Autowired
-	public DisableInactiveUser(MongoTemplate mongoTemplate) {
-		this.mongoTemplate = mongoTemplate;
+	public DisableInactiveUser(MongoDb mongoDb) {
+		this.mongoDb = mongoDb;
 	}
 
 	@Scheduled(cron = "0 0 5 * * *")
 	public void doCleanup() {
 		// Inactivate users that have a lastAccess timestamp that is older than one year
 		ZonedDateTime oneYearAgo = ZonedDateTime.now(ZoneOffset.UTC).minusYears(1);
-		this.mongoTemplate.updateMulti(
-				Query.query(Criteria.where(CUser.lastAccess).lte(oneYearAgo)),
-				Update.update(CUser.enabled, false), User.class);
+		this.mongoDb.getCollection(User.class)
+		   .updateMany(Filters.lte(CUser.lastAccess, oneYearAgo),
+				   Updates.set(CUser.enabled, false));
+//		this.mongoDb.updateMulti(
+//				Query.query(Criteria.where(CUser.lastAccess).lte(oneYearAgo)),
+//				Update.update(CUser.enabled, false), User.class);
 
 	}
 

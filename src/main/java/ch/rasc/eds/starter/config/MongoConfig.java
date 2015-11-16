@@ -1,38 +1,33 @@
 package ch.rasc.eds.starter.config;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.mongodb.MongoDbFactory;
-import org.springframework.data.mongodb.core.convert.CustomConversions;
-import org.springframework.data.mongodb.core.convert.DbRefResolver;
-import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
-import org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper;
-import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
-import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
+
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoDatabase;
+
+import ch.rasc.eds.starter.entity.PojoCodecProvider;
 
 @Configuration
+@EnableConfigurationProperties(MongoProperties.class)
 public class MongoConfig {
 
 	@Bean
-	public MappingMongoConverter mappingMongoConverter(MongoDbFactory factory,
-			MongoMappingContext context, BeanFactory beanFactory) {
-		DbRefResolver dbRefResolver = new DefaultDbRefResolver(factory);
-		MappingMongoConverter mappingConverter = new MappingMongoConverter(dbRefResolver,
-				context);
-
-		// remove _class field
-		mappingConverter.setTypeMapper(new DefaultMongoTypeMapper(null));
-
-		try {
-			mappingConverter
-					.setCustomConversions(beanFactory.getBean(CustomConversions.class));
-		}
-		catch (NoSuchBeanDefinitionException ex) {
-			// Ignore
-		}
-		return mappingConverter;
+	public MongoClient mongoClient(MongoProperties properties) {
+		MongoClientURI uri = new MongoClientURI(properties.getUri());
+		return new MongoClient(uri);
+	}
+	
+	@Bean
+	public MongoDatabase mongoDatabase(MongoClient mongoClient, MongoProperties properties) {
+		MongoClientURI uri = new MongoClientURI(properties.getUri());
+		return mongoClient.getDatabase(uri.getDatabase())				
+				.withCodecRegistry(CodecRegistries.fromRegistries(
+                        MongoClient.getDefaultCodecRegistry(),
+                        CodecRegistries.fromProviders(new PojoCodecProvider())));
 	}
 
 }

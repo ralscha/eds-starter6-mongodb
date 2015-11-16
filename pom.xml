@@ -31,16 +31,16 @@
 	</properties>
 
 	<dependencies>
-		<dependency>
+<!-- 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-mongodb</artifactId>
-		</dependency>
+		</dependency> -->
 
-		<dependency>
-			<groupId>org.mongodb</groupId>
-			<artifactId>mongo-java-driver</artifactId>
-			<version>3.1.1</version>
-		</dependency>
+   <dependency>
+        <groupId>org.mongodb</groupId>
+        <artifactId>mongodb-driver</artifactId>
+        <version>3.1.1</version>
+    </dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -129,9 +129,24 @@
 		<dependency>
 			<groupId>ch.rasc</groupId>
 			<artifactId>constgen</artifactId>
-			<version>1.0.1</version>
+			<version>1.0.2-SNAPSHOT</version>
 			<optional>true</optional>
 		</dependency>
+		
+		<dependency>
+			<groupId>ch.rasc</groupId>
+			<artifactId>constgen</artifactId>
+			<version>1.0.2-SNAPSHOT</version>
+			<optional>true</optional>
+		</dependency>
+		
+		<dependency>
+	        <groupId>ch.rasc</groupId>
+	        <artifactId>bsoncodec-apt</artifactId>
+	        <version>1.0.0-SNAPSHOT</version>
+	        <scope>provided</scope>
+	    </dependency>		
+		
 	</dependencies>
 
 	<build>
@@ -147,6 +162,10 @@
 							<groupId>ch.rasc</groupId>
 							<artifactId>constgen</artifactId>
 						</exclude>
+						<exclude>
+							<groupId>ch.rasc</groupId>
+							<artifactId>bsoncodec-apt</artifactId>
+						</exclude>						
 					</excludes>
 				</configuration>
 			</plugin>
@@ -329,6 +348,17 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
+        <repository>
+            <id>sonatype</id>
+            <name>sonatype</name>
+            <url>https://oss.sonatype.org/content/groups/public</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>	
 	</repositories>
 
 	<pluginRepositories>

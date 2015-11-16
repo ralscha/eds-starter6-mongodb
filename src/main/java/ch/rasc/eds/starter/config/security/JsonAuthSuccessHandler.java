@@ -10,16 +10,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.FindOneAndUpdateOptions;
+import com.mongodb.client.model.ReturnDocument;
+import com.mongodb.client.model.Updates;
 
+import ch.rasc.eds.starter.config.MongoDb;
 import ch.rasc.eds.starter.dto.UserDetailDto;
 import ch.rasc.eds.starter.entity.CUser;
 import ch.rasc.eds.starter.entity.User;
@@ -28,14 +29,13 @@ import ch.rasc.eds.starter.service.SecurityService;
 @Component
 public class JsonAuthSuccessHandler implements AuthenticationSuccessHandler {
 
-	private final MongoTemplate mongoTemplate;
+	private final MongoDb mongoDb;
 
 	private final ObjectMapper objectMapper;
 
 	@Autowired
-	public JsonAuthSuccessHandler(MongoTemplate mongoTemplate,
-			ObjectMapper objectMapper) {
-		this.mongoTemplate = mongoTemplate;
+	public JsonAuthSuccessHandler(MongoDb mongoDb, ObjectMapper objectMapper) {
+		this.mongoDb = mongoDb;
 		this.objectMapper = objectMapper;
 	}
 
@@ -51,13 +51,22 @@ public class JsonAuthSuccessHandler implements AuthenticationSuccessHandler {
 		if (userDetails != null) {
 			User user;
 			if (!userDetails.isPreAuth()) {
-				user = this.mongoTemplate.findAndModify(
-						Query.query(
-								Criteria.where(CUser.id).is(userDetails.getUserDbId())),
-						Update.update(CUser.lastAccess, new Date()), User.class);
+
+				user = mongoDb.getCollection(User.class).findOneAndUpdate(
+						Filters.eq(CUser.id, userDetails.getUserDbId()),
+						Updates.set(CUser.lastAccess, new Date()),
+						new FindOneAndUpdateOptions()
+								.returnDocument(ReturnDocument.AFTER));
+
+				// user = this.mongoDb.findAndModify(
+				// Query.query(
+				// Criteria.where(CUser.id).is(userDetails.getUserDbId())),
+				// Update.update(CUser.lastAccess, new Date()), User.class);
 			}
 			else {
-				user = this.mongoTemplate.findById(userDetails.getUserDbId(), User.class);
+				user = mongoDb.getCollection(User.class)
+						.find(Filters.eq(CUser.id, userDetails.getUserDbId())).first();
+				// user = this.mongoDb.findById(userDetails.getUserDbId(), User.class);
 			}
 			result.put(SecurityService.AUTH_USER, new UserDetailDto(userDetails, user));
 		}

@@ -12,11 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.FindAndModifyOptions;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -28,8 +23,15 @@ import org.springframework.security.web.authentication.rememberme.InvalidCookieE
 import org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationException;
 import org.springframework.stereotype.Component;
 
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.FindOneAndUpdateOptions;
+import com.mongodb.client.model.Projections;
+import com.mongodb.client.model.ReturnDocument;
+import com.mongodb.client.model.Updates;
+
 import ch.rasc.eds.starter.Application;
 import ch.rasc.eds.starter.config.AppProperties;
+import ch.rasc.eds.starter.config.MongoDb;
 import ch.rasc.eds.starter.entity.CPersistentLogin;
 import ch.rasc.eds.starter.entity.CUser;
 import ch.rasc.eds.starter.entity.PersistentLogin;
@@ -76,19 +78,19 @@ public class CustomPersistentRememberMeServices extends AbstractRememberMeServic
 
 	private final SecureRandom random;
 
-	private final MongoTemplate mongoTemplate;
+	private final MongoDb mongoDb;
 
 	private final int tokenValidInSeconds;
 
 	@Autowired
-	public CustomPersistentRememberMeServices(MongoTemplate mongoTemplate,
+	public CustomPersistentRememberMeServices(MongoDb mongoDb,
 			UserDetailsService userDetailsService, AppProperties appProperties) {
 		super(appProperties.getRemembermeCookieKey(), userDetailsService);
 
 		this.tokenValidInSeconds = 60 * 60 * 24
 				* appProperties.getRemembermeCookieValidInDays();
 
-		this.mongoTemplate = mongoTemplate;
+		this.mongoDb = mongoDb;
 		this.random = new SecureRandom();
 	}
 
@@ -98,19 +100,33 @@ public class CustomPersistentRememberMeServices extends AbstractRememberMeServic
 
 		String series = getPersistentToken(cookieTokens);
 
-		PersistentLogin pl = this.mongoTemplate.findAndModify(
-				Query.query(Criteria.where(CPersistentLogin.series).is(series)),
-				new Update().set(CPersistentLogin.lastUsed, new Date())
-						.set(CPersistentLogin.token, generateTokenData())
-						.set(CPersistentLogin.ipAddress, request.getRemoteAddr())
-						.set(CPersistentLogin.userAgent,
-								request.getHeader(HttpHeaders.USER_AGENT)),
-				FindAndModifyOptions.options().returnNew(true), PersistentLogin.class);
+//		PersistentLogin pl = this.mongoDb.findAndModify(
+//				Query.query(Criteria.where(CPersistentLogin.series).is(series)),
+//				new Update().set(CPersistentLogin.lastUsed, new Date())
+//						.set(CPersistentLogin.token, generateTokenData())
+//						.set(CPersistentLogin.ipAddress, request.getRemoteAddr())
+//						.set(CPersistentLogin.userAgent,
+//								request.getHeader(HttpHeaders.USER_AGENT)),
+//				FindAndModifyOptions.options().returnNew(true), PersistentLogin.class);
 
-		Query query = Query.query(
-				Criteria.where(CUser.id).is(pl.getUserId()).and(CUser.deleted).is(false));
-		query.fields().include(CUser.email);
-		User user = this.mongoTemplate.findOne(query, User.class);
+		PersistentLogin pl = this.mongoDb.getCollection(PersistentLogin.class).findOneAndUpdate(
+				Filters.eq(CPersistentLogin.series, series),				
+				Updates.combine(Updates.set(CPersistentLogin.lastUsed, new Date()),
+						Updates.set(CPersistentLogin.token, generateTokenData()),
+						Updates.set(CPersistentLogin.ipAddress, request.getRemoteAddr()),
+						Updates.set(CPersistentLogin.userAgent,
+								request.getHeader(HttpHeaders.USER_AGENT))), 				
+				new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
+		
+		User user = this.mongoDb.getCollection(User.class)
+				.find(Filters.and(Filters.eq(CUser.id, pl.getUserId()),
+						Filters.eq(CUser.deleted, false))).projection(Projections.include(CUser.email))
+				.first();
+		
+//		Query query = Query.query(
+//				Criteria.where(CUser.id).is(pl.getUserId()).and(CUser.deleted).is(false));
+//		query.fields().include(CUser.email);
+//		User user = this.mongoDb.findOne(query, User.class);
 
 		String loginName = user.getEmail();
 		String token = pl.getToken();
@@ -137,10 +153,15 @@ public class CustomPersistentRememberMeServices extends AbstractRememberMeServic
 
 		Application.logger.debug("Creating new persistent login for user {}", loginName);
 
-		User user = this.mongoTemplate.findOne(Query.query(
-				Criteria.where(CUser.email).is(loginName).and(CUser.deleted).is(false)),
-				User.class);
+//		User user = this.mongoDb.findOne(Query.query(
+//				Criteria.where(CUser.email).is(loginName).and(CUser.deleted).is(false)),
+//				User.class);
 
+		User user = this.mongoDb.getCollection(User.class)
+				.find(Filters.and(Filters.eq(CUser.email, loginName),
+						Filters.eq(CUser.deleted, false)))
+				.first();
+		
 		if (user != null) {
 			PersistentLogin newPersistentLogin = new PersistentLogin();
 			newPersistentLogin.setSeries(generateSeriesData());
@@ -150,7 +171,8 @@ public class CustomPersistentRememberMeServices extends AbstractRememberMeServic
 			newPersistentLogin.setIpAddress(request.getRemoteAddr());
 			newPersistentLogin.setUserAgent(request.getHeader(HttpHeaders.USER_AGENT));
 
-			this.mongoTemplate.save(newPersistentLogin);
+			this.mongoDb.getCollection(PersistentLogin.class).insertOne(newPersistentLogin);
+			//this.mongoDb.save(newPersistentLogin);
 
 			addCookie(newPersistentLogin.getSeries(), newPersistentLogin.getToken(),
 					request, response);
@@ -193,9 +215,10 @@ public class CustomPersistentRememberMeServices extends AbstractRememberMeServic
 	}
 
 	private void removePersistentLogin(String series) {
-		this.mongoTemplate.remove(
-				Query.query(Criteria.where(CPersistentLogin.series).is(series)),
-				PersistentLogin.class);
+		this.mongoDb.getCollection(PersistentLogin.class).deleteOne(Filters.eq(CPersistentLogin.series, series));
+//		this.mongoDb.remove(
+//				Query.query(Criteria.where(CPersistentLogin.series).is(series)),
+//				PersistentLogin.class);
 	}
 
 	/**
@@ -211,8 +234,9 @@ public class CustomPersistentRememberMeServices extends AbstractRememberMeServic
 		final String presentedSeries = cookieTokens[0];
 		final String presentedToken = cookieTokens[1];
 
-		PersistentLogin pl = this.mongoTemplate.findById(presentedSeries,
-				PersistentLogin.class);
+		PersistentLogin pl = this.mongoDb.getCollection(PersistentLogin.class).find(Filters.eq(CPersistentLogin.series, presentedSeries)).first();
+//		PersistentLogin pl = this.mongoDb.findById(presentedSeries,
+//				PersistentLogin.class);
 
 		if (pl == null) {
 			// No series match, so we can't authenticate using this cookie

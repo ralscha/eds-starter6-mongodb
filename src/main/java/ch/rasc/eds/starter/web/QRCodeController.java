@@ -6,7 +6,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
@@ -19,6 +18,7 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
+import ch.rasc.eds.starter.config.MongoDb;
 import ch.rasc.eds.starter.config.security.MongoUserDetails;
 import ch.rasc.eds.starter.config.security.RequireAnyAuthority;
 import ch.rasc.eds.starter.entity.User;
@@ -26,14 +26,14 @@ import ch.rasc.eds.starter.entity.User;
 @Controller
 public class QRCodeController {
 
-	private final MongoTemplate mongoTemplate;
+	private final MongoDb mongoDb;
 
 	private final String appName;
 
 	@Autowired
-	QRCodeController(MongoTemplate mongoTemplate,
+	QRCodeController(MongoDb mongoDb,
 			@Value("${info.app.name}") String appName) {
-		this.mongoTemplate = mongoTemplate;
+		this.mongoDb = mongoDb;
 		this.appName = appName;
 	}
 
@@ -43,7 +43,7 @@ public class QRCodeController {
 			@AuthenticationPrincipal MongoUserDetails userDetails)
 					throws WriterException, IOException {
 
-		User user = userDetails.getUser(this.mongoTemplate);
+		User user = userDetails.getUser(this.mongoDb);
 		if (user != null && StringUtils.hasText(user.getSecret())) {
 			response.setContentType("image/png");
 			String contents = "otpauth://totp/" + user.getEmail() + "?secret="

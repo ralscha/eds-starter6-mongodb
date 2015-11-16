@@ -2,13 +2,13 @@ package ch.rasc.eds.starter.config.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent;
 import org.springframework.stereotype.Component;
 
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
+
+import ch.rasc.eds.starter.config.MongoDb;
 import ch.rasc.eds.starter.entity.CUser;
 import ch.rasc.eds.starter.entity.User;
 
@@ -16,11 +16,11 @@ import ch.rasc.eds.starter.entity.User;
 public class UserAuthSuccessfulHandler
 		implements ApplicationListener<InteractiveAuthenticationSuccessEvent> {
 
-	private final MongoTemplate mongoTemplate;
+	private final MongoDb mongoDb;
 
 	@Autowired
-	public UserAuthSuccessfulHandler(MongoTemplate mongoTemplate) {
-		this.mongoTemplate = mongoTemplate;
+	public UserAuthSuccessfulHandler(MongoDb mongoDb) {
+		this.mongoDb = mongoDb;
 	}
 
 	@Override
@@ -29,10 +29,13 @@ public class UserAuthSuccessfulHandler
 		if (principal instanceof MongoUserDetails) {
 			String userId = ((MongoUserDetails) principal).getUserDbId();
 
-			this.mongoTemplate.updateFirst(
-					Query.query(Criteria.where(CUser.id).is(userId)),
-					Update.update(CUser.lockedOutUntil, null).set(CUser.failedLogins, 0),
-					User.class);
+			mongoDb.getCollection(User.class).updateOne(Filters.eq(CUser.id, userId),
+					Updates.combine(Updates.unset(CUser.lockedOutUntil), Updates.set(CUser.failedLogins, 0)) );
+			
+//			this.mongoDb.updateFirst(
+//					Query.query(Criteria.where(CUser.id).is(userId)),
+//					Update.update(CUser.lockedOutUntil, null).set(CUser.failedLogins, 0),
+//					User.class);
 
 		}
 	}

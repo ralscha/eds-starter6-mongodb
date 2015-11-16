@@ -5,18 +5,17 @@ import java.util.List;
 
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotBlank;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import ch.rasc.bsoncodec.annotation.BsonDocument;
+import ch.rasc.bsoncodec.annotation.Transient;
 import ch.rasc.extclassgenerator.Model;
 import ch.rasc.extclassgenerator.ModelField;
 
-@Document
+@BsonDocument
 @Model(value = "Starter.model.User", readMethod = "userService.read",
 		createMethod = "userService.update", updateMethod = "userService.update",
 		destroyMethod = "userService.destroy", rootProperty = "records",
@@ -34,7 +33,7 @@ public class User {
 	private String firstName;
 
 	@Email(message = "{invalidemail}")
-	@Indexed(unique = true)
+	//todo @Indexed(unique = true)
 	private String email;
 
 	private List<String> authorities;

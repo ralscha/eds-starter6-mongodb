@@ -13,6 +13,9 @@ app:
   login-lock-attempts: 10
   login-lock-minutes: 30
 
+mongodb:
+  uri: mongodb://localhost/starter6?w=1&wtimeoutMS=0&journal=true
+
 security:
   ignored:
     - /resources/**
@@ -36,10 +39,6 @@ spring:
 
   mail:
     host: localhost    
-
-  data:
-    mongodb:
-      uri: mongodb://localhost/starter6?w=1&wtimeoutMS=0&journal=true
 
   async:
     core-pool-size: 2
