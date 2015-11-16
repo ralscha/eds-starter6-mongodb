@@ -18,7 +18,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.3.0.RC1</version>
+		<version>1.3.0.RELEASE</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 
@@ -27,20 +27,15 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.8</java.version>
 		<maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssZ</maven.build.timestamp.format>
-		<build.timestamp>${maven.build.timestamp}</build.timestamp>		
+		<build.timestamp>${maven.build.timestamp}</build.timestamp>
 	</properties>
 
 	<dependencies>
-<!-- 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-mongodb</artifactId>
-		</dependency> -->
-
-   <dependency>
-        <groupId>org.mongodb</groupId>
-        <artifactId>mongodb-driver</artifactId>
-        <version>3.1.1</version>
-    </dependency>
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongodb-driver</artifactId>
+			<version>3.1.1</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -132,27 +127,20 @@
 			<version>1.0.2-SNAPSHOT</version>
 			<optional>true</optional>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>ch.rasc</groupId>
-			<artifactId>constgen</artifactId>
-			<version>1.0.2-SNAPSHOT</version>
+			<artifactId>bsoncodec-apt</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
 			<optional>true</optional>
 		</dependency>
-		
-		<dependency>
-	        <groupId>ch.rasc</groupId>
-	        <artifactId>bsoncodec-apt</artifactId>
-	        <version>1.0.0-SNAPSHOT</version>
-	        <scope>provided</scope>
-	    </dependency>		
-		
+
 	</dependencies>
 
 	<build>
 		<finalName>eds-starter6-mongodb</finalName>
 		<plugins>
-		
+
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
@@ -165,7 +153,23 @@
 						<exclude>
 							<groupId>ch.rasc</groupId>
 							<artifactId>bsoncodec-apt</artifactId>
-						</exclude>						
+						</exclude>
+						<exclude>
+							<groupId>com.squareup</groupId>
+							<artifactId>javapoet</artifactId>
+						</exclude>
+						<exclude>
+							<groupId>com.google.auto.service</groupId>
+							<artifactId>auto-service</artifactId>
+						</exclude>
+						<exclude>
+							<groupId>org.immutables</groupId>
+							<artifactId>value</artifactId>
+						</exclude>
+						<exclude>
+							<groupId>com.google.code.findbugs</groupId>
+							<artifactId>jsr305</artifactId>
+						</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
@@ -174,7 +178,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-				    <debug>true</debug>
+					<debug>true</debug>
 					<source>${java.version}</source>
 					<target>${java.version}</target>
 					<compilerArgument>-parameters</compilerArgument>
@@ -348,17 +352,17 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
-        <repository>
-            <id>sonatype</id>
-            <name>sonatype</name>
-            <url>https://oss.sonatype.org/content/groups/public</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>	
+		<repository>
+			<id>sonatype</id>
+			<name>sonatype</name>
+			<url>https://oss.sonatype.org/content/groups/public</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+		</repository>
 	</repositories>
 
 	<pluginRepositories>
