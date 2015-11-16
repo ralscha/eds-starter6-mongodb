@@ -29,6 +29,7 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.Sorts;
+import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
 
 import ch.ralscha.extdirectspring.annotation.ExtDirectMethod;
@@ -149,7 +150,7 @@ public class UserService {
 
 		if (violations.isEmpty()) {
 			this.mongoDb.getCollection(User.class).replaceOne(
-					Filters.eq(CUser.id, updatedEntity.getId()), updatedEntity);
+					Filters.eq(CUser.id, updatedEntity.getId()), updatedEntity, new UpdateOptions().upsert(true));
 
 			if (!updatedEntity.isEnabled()) {
 				deletePersistentLogins(updatedEntity.getId());
