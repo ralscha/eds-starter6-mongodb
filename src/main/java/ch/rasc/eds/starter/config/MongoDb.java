@@ -29,10 +29,29 @@ public class MongoDb {
 
 	@PostConstruct
 	public void createIndexes() {
-		this.getCollection(User.class).createIndex(Indexes.ascending(CUser.email),
-				new IndexOptions().unique(true));
-		this.getCollection(PersistentLogin.class)
-				.createIndex(Indexes.ascending(CPersistentLogin.userId));
+
+		if (!indexExists(User.class, CUser.email)) {
+			this.getCollection(User.class).createIndex(Indexes.ascending(CUser.email),
+					new IndexOptions().unique(true));
+		}
+
+		if (!indexExists(User.class, CUser.failedLogins)) {
+			this.getCollection(PersistentLogin.class)
+					.createIndex(Indexes.ascending(CPersistentLogin.userId));
+		}
+
+	}
+
+	private boolean indexExists(Class<?> clazz, String name) {
+		for (Document doc : this.getCollection(clazz).listIndexes()) {
+			Document key = (Document) doc.get("key");
+			if (key != null) {
+				if (key.containsKey(name)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	public MongoDatabase getMongoDatabase() {
