@@ -124,14 +124,14 @@
 		<dependency>
 			<groupId>ch.rasc</groupId>
 			<artifactId>constgen</artifactId>
-			<version>1.0.2-SNAPSHOT</version>
+			<version>1.0.2</version>
 			<optional>true</optional>
 		</dependency>
 
 		<dependency>
 			<groupId>ch.rasc</groupId>
 			<artifactId>bsoncodec-apt</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>1.0.0</version>
 			<optional>true</optional>
 		</dependency>
 
