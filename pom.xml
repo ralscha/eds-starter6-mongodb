@@ -130,6 +130,13 @@
 
 		<dependency>
 			<groupId>ch.rasc</groupId>
+			<artifactId>bsoncodec</artifactId>
+			<version>1.0.0</version>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>ch.rasc</groupId>
 			<artifactId>bsoncodec-apt</artifactId>
 			<version>1.0.0</version>
 			<optional>true</optional>
