@@ -35,6 +35,7 @@ public class User {
 	private String firstName;
 
 	@Email(message = "{invalidemail}")
+	@NotBlank(message = "{fieldrequired}")
 	private String email;
 
 	private List<String> authorities;
