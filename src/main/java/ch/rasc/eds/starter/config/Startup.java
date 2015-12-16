@@ -1,7 +1,6 @@
 package ch.rasc.eds.starter.config;
 
 import java.util.Arrays;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,7 +31,6 @@ class Startup {
 		if (userCollection.count() == 0) {
 			// admin user
 			User adminUser = new User();
-			adminUser.setId(UUID.randomUUID().toString());
 			adminUser.setEmail("admin@starter.com");
 			adminUser.setFirstName("admin");
 			adminUser.setLastName("admin");
@@ -45,7 +43,6 @@ class Startup {
 
 			// normal user
 			User normalUser = new User();
-			normalUser.setId(UUID.randomUUID().toString());
 			normalUser.setEmail("user@starter.com");
 			normalUser.setFirstName("user");
 			normalUser.setLastName("user");
