@@ -60,6 +60,12 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-mail</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>activation</artifactId>
+					<groupId>javax.activation</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -165,6 +171,10 @@
 							<groupId>com.squareup</groupId>
 							<artifactId>javapoet</artifactId>
 						</exclude>
+						<exclude>
+							<groupId>com.google.auto</groupId>
+							<artifactId>auto-common</artifactId>
+						</exclude>						
 						<exclude>
 							<groupId>com.google.auto.service</groupId>
 							<artifactId>auto-service</artifactId>
