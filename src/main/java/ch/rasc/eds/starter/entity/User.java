@@ -25,6 +25,7 @@ import ch.rasc.extclassgenerator.ModelField;
 public class User {
 
 	@ModelField(useNull = true, convert = "null")
+	@Id(generator = UUIDStringGenerator.class)
 	private String id;
 
 	@NotBlank(message = "{fieldrequired}")
