@@ -2,9 +2,13 @@ package ch.rasc.eds.starter.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.bson.conversions.Bson;
 
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Sorts;
 
 import ch.ralscha.extdirectspring.bean.ExtDirectStoreReadRequest;
@@ -27,4 +31,12 @@ public abstract class QueryUtil {
 		return sorts;
 	}
 
+	public static <T> List<T> toList(FindIterable<T> iterable) {
+		return StreamSupport.stream(iterable.spliterator(), false)
+				.collect(Collectors.toList());
+	}
+
+	public static <T> Stream<T> stream(FindIterable<T> iterable) {
+		return StreamSupport.stream(iterable.spliterator(), false);
+	}
 }
