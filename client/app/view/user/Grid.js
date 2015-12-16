@@ -1,6 +1,6 @@
 Ext.define('Starter.view.user.Grid', {
 	extend: 'Ext.grid.Panel',
-	requires: [ 'Analytics.plugin.Clearable' ],
+	requires: [ 'Starter.plugin.Clearable' ],
 	stateful: true,
 	stateId: 'view.user.Grid',
 
