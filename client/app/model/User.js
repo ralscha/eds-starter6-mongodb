@@ -25,6 +25,8 @@ Ext.define("Starter.model.User",
     type : "string",
     validators : [ {
       type : "email"
+    }, {
+      type : "notBlank"
     } ]
   }, {
     name : "locale",
