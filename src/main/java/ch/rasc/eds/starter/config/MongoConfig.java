@@ -9,8 +9,6 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
 
-import ch.rasc.eds.starter.entity.PojoCodecProvider;
-
 @Configuration
 @EnableConfigurationProperties(MongoProperties.class)
 public class MongoConfig {
