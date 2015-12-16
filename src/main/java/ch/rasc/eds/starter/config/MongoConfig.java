@@ -28,7 +28,7 @@ public class MongoConfig {
 		return mongoClient.getDatabase(uri.getDatabase())
 				.withCodecRegistry(CodecRegistries.fromRegistries(
 						MongoClient.getDefaultCodecRegistry(),
-						CodecRegistries.fromProviders(new PojoCodecProvider())));
+						CodecRegistries.fromProviders(new ch.rasc.eds.starter.config.PojoCodecProvider())));
 	}
 
 }
