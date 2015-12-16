@@ -77,9 +77,8 @@ public class UserService {
 	public ExtDirectStoreResult<User> read(ExtDirectStoreReadRequest request) {
 
 		List<Bson> andFilters = new ArrayList<>();
-		if (!request.getFilters().isEmpty()) {
-			StringFilter filter = (StringFilter) request.getFilters().iterator().next();
-
+		StringFilter filter = request.getFirstFilterForField("filter");
+		if (filter != null) {
 			List<Bson> orFilters = new ArrayList<>();
 			orFilters.add(Filters.regex(CUser.lastName, filter.getValue(), "i"));
 			orFilters.add(Filters.regex(CUser.firstName, filter.getValue(), "i"));
@@ -142,7 +141,6 @@ public class UserService {
 			updatedEntity.setLastAccess(user.getLastAccess());
 			updatedEntity.setLockedOutUntil(user.getLockedOutUntil());
 			updatedEntity.setFailedLogins(user.getFailedLogins());
-
 			violations.addAll(checkIfLastAdmin(updatedEntity, locale, user));
 		}
 
@@ -150,7 +148,8 @@ public class UserService {
 
 		if (violations.isEmpty()) {
 			this.mongoDb.getCollection(User.class).replaceOne(
-					Filters.eq(CUser.id, updatedEntity.getId()), updatedEntity, new UpdateOptions().upsert(true));
+					Filters.eq(CUser.id, updatedEntity.getId()), updatedEntity,
+					new UpdateOptions().upsert(true));
 
 			if (!updatedEntity.isEnabled()) {
 				deletePersistentLogins(updatedEntity.getId());
@@ -234,9 +233,7 @@ public class UserService {
 
 	private boolean isEmailUnique(String userId, String email) {
 		if (StringUtils.hasText(email)) {
-
 			long count;
-
 			if (userId != null) {
 				count = this.mongoDb.getCollection(User.class)
 						.count(Filters.and(
