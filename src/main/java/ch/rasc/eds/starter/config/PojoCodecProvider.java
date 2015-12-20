@@ -11,25 +11,25 @@ import ch.rasc.eds.starter.entity.User;
 import ch.rasc.eds.starter.entity.UserCodec;
 
 public final class PojoCodecProvider implements CodecProvider {
-  private final UUIDStringGenerator uUIDStringGenerator;
+	private final UUIDStringGenerator uUIDStringGenerator;
 
-  public PojoCodecProvider() {
-    this(new UUIDStringGenerator());
-  }
+	public PojoCodecProvider() {
+		this(new UUIDStringGenerator());
+	}
 
-  public PojoCodecProvider(final UUIDStringGenerator uUIDStringGenerator) {
-    this.uUIDStringGenerator = uUIDStringGenerator;
-  }
+	public PojoCodecProvider(final UUIDStringGenerator uUIDStringGenerator) {
+		this.uUIDStringGenerator = uUIDStringGenerator;
+	}
 
-  @Override
-  @SuppressWarnings("unchecked")
-  public <T> Codec<T> get(final Class<T> clazz, final CodecRegistry registry) {
-    if (clazz.equals(PersistentLogin.class)) {
-      return (Codec<T>) new PersistentLoginCodec();
-    }
-    if (clazz.equals(User.class)) {
-      return (Codec<T>) new UserCodec(uUIDStringGenerator);
-    }
-    return null;
-  }
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T> Codec<T> get(final Class<T> clazz, final CodecRegistry registry) {
+		if (clazz.equals(PersistentLogin.class)) {
+			return (Codec<T>) new PersistentLoginCodec();
+		}
+		if (clazz.equals(User.class)) {
+			return (Codec<T>) new UserCodec(this.uUIDStringGenerator);
+		}
+		return null;
+	}
 }
