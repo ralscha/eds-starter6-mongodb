@@ -35,7 +35,7 @@ public class MongoDb {
 					new IndexOptions().unique(true));
 		}
 
-		if (!indexExists(User.class, CUser.failedLogins)) {
+		if (!indexExists(PersistentLogin.class, CPersistentLogin.userId)) {
 			this.getCollection(PersistentLogin.class)
 					.createIndex(Indexes.ascending(CPersistentLogin.userId));
 		}
