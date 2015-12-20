@@ -65,9 +65,6 @@ var REMOTING_API = {
       "name" : "read",
       "len" : 1
     }, {
-      "name" : "readAuthorities",
-      "len" : 1
-    }, {
       "name" : "sendPassordResetEmail",
       "len" : 1
     }, {

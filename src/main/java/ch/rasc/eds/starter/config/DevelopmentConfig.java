@@ -33,6 +33,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ch.ralscha.extdirectspring.util.ExtDirectSpringUtil;
+import ch.rasc.eds.starter.entity.Authority;
 
 @Configuration
 @Profile("development")
@@ -78,15 +79,13 @@ class DevelopmentConfig extends WebMvcConfigurerAdapter {
 
 		Path clientDir = Paths.get(userDir, "client");
 		writeI18n(clientDir);
-		// writeEnums(clientDir);
+		writeEnums(clientDir);
 	}
 
-	@SuppressWarnings("unused")
 	private static void writeEnums(Path clientDir) throws IOException {
-		// writeEnum(clientDir, "TransportType", TransportType.values(), true);
+		writeEnum(clientDir, "Authority", Authority.values(), true);
 	}
 
-	@SuppressWarnings("unused")
 	private static void writeEnum(Path clientDir, String name, Enum<?>[] values,
 			boolean writeStore) throws IOException {
 		StringBuilder sb = new StringBuilder(200);
@@ -99,7 +98,12 @@ class DevelopmentConfig extends WebMvcConfigurerAdapter {
 		sb.append("\n");
 		sb.append("});");
 
-		Files.write(clientDir.resolve("app").resolve("constant").resolve(name + ".js"),
+		Path constantDir = clientDir.resolve("app").resolve("constant");
+		if (Files.notExists(constantDir)) {
+			Files.createDirectories(constantDir);
+		}
+
+		Files.write(constantDir.resolve(name + ".js"),
 				sb.toString().getBytes(StandardCharsets.UTF_8));
 
 		if (writeStore) {
