@@ -2,7 +2,6 @@ package ch.rasc.eds.starter.dto;
 
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotBlank;
-import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -42,7 +41,7 @@ public class UserSettings {
 		this.lastName = user.getLastName();
 		this.locale = user.getLocale();
 		this.email = user.getEmail();
-		this.twoFactorAuth = StringUtils.hasText(user.getSecret());
+		this.twoFactorAuth = user.isTwoFactorAuth();
 	}
 
 	public String getFirstName() {
