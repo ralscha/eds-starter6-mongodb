@@ -13,15 +13,16 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import ch.rasc.bsoncodec.annotation.BsonDocument;
 import ch.rasc.bsoncodec.annotation.Id;
-import ch.rasc.bsoncodec.annotation.Transient;
 import ch.rasc.extclassgenerator.Model;
 import ch.rasc.extclassgenerator.ModelField;
+import ch.rasc.extclassgenerator.ModelType;
 
 @BsonDocument
 @Model(value = "Starter.model.User", readMethod = "userService.read",
 		createMethod = "userService.update", updateMethod = "userService.update",
 		destroyMethod = "userService.destroy", rootProperty = "records",
 		identifier = "uuid")
+@ModelField(value = "twoFactorAuth", persist = false, type = ModelType.BOOLEAN)
 @JsonInclude(Include.NON_NULL)
 public class User {
 
@@ -69,10 +70,6 @@ public class User {
 
 	@JsonIgnore
 	private String secret;
-
-	@ModelField(persist = false)
-	@Transient
-	private boolean twoFactorAuth;
 
 	public String getId() {
 		return this.id;

@@ -4,6 +4,10 @@ Ext.define("Starter.model.User",
   requires : [ "Ext.data.identifier.Uuid", "Ext.data.proxy.Direct", "Ext.data.validator.Email" ],
   identifier : "uuid",
   fields : [ {
+    name : "twoFactorAuth",
+    type : "boolean",
+    persist : false
+  }, {
     name : "id",
     type : "string",
     allowNull : true,
@@ -50,10 +54,6 @@ Ext.define("Starter.model.User",
     name : "lastAccess",
     type : "date",
     dateFormat : "time",
-    persist : false
-  }, {
-    name : "twoFactorAuth",
-    type : "boolean",
     persist : false
   } ],
   proxy : {
