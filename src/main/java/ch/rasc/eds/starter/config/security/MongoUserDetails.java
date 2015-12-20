@@ -98,16 +98,10 @@ public class MongoUserDetails implements UserDetails {
 	}
 
 	public User getUser(MongoDb mongoDb) {
-		User user = mongoDb.getCollection(User.class)
+		return mongoDb.getCollection(User.class)
 				.find(Filters.and(Filters.eq(CUser.id, getUserDbId()),
 						Filters.eq(CUser.deleted, false)))
 				.first();
-
-		if (user != null) {
-			user.setTwoFactorAuth(StringUtils.hasText(user.getSecret()));
-			return user;
-		}
-		return null;
 	}
 
 	public String getUserDbId() {

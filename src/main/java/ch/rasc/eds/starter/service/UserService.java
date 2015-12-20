@@ -6,15 +6,10 @@ import static ch.ralscha.extdirectspring.annotation.ExtDirectMethodType.STORE_RE
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import javax.validation.Validator;
 
@@ -97,11 +92,7 @@ public class UserService {
 		find.skip(request.getStart());
 		find.limit(request.getLimit());
 
-		List<User> users = StreamSupport.stream(find.spliterator(), false)
-				.peek(u -> u.setTwoFactorAuth(StringUtils.hasText(u.getSecret())))
-				.collect(Collectors.toList());
-
-		return new ExtDirectStoreResult<>(total, users);
+		return new ExtDirectStoreResult<>(total, QueryUtil.toList(find));
 	}
 
 	@ExtDirectMethod(STORE_MODIFY)
@@ -128,27 +119,29 @@ public class UserService {
 
 	@ExtDirectMethod(STORE_MODIFY)
 	public ValidationMessagesResult<User> update(User updatedEntity, Locale locale) {
-		User user = this.mongoDb.getCollection(User.class)
-				.find(Filters.eq(CUser.id, updatedEntity.getId())).first();
-		List<ValidationMessages> violations = new ArrayList<>();
-
-		if (user != null) {
-			updatedEntity.setPasswordHash(user.getPasswordHash());
-			updatedEntity.setSecret(user.getSecret());
-			updatedEntity.setPasswordResetToken(user.getPasswordResetToken());
-			updatedEntity.setPasswordResetTokenValidUntil(
-					user.getPasswordResetTokenValidUntil());
-			updatedEntity.setLastAccess(user.getLastAccess());
-			updatedEntity.setLockedOutUntil(user.getLockedOutUntil());
-			updatedEntity.setFailedLogins(user.getFailedLogins());
-			violations.addAll(checkIfLastAdmin(updatedEntity, locale, user));
-		}
-
-		violations.addAll(validateEntity(updatedEntity, locale));
+		List<ValidationMessages> violations = validateEntity(updatedEntity, locale);
+		violations.addAll(checkIfLastAdmin(updatedEntity, locale));
 
 		if (violations.isEmpty()) {
-			this.mongoDb.getCollection(User.class).replaceOne(
-					Filters.eq(CUser.id, updatedEntity.getId()), updatedEntity,
+
+			List<Bson> updates = new ArrayList<>();
+			updates.add(Updates.set(CUser.email, updatedEntity.getEmail()));
+			updates.add(Updates.set(CUser.firstName, updatedEntity.getFirstName()));
+			updates.add(Updates.set(CUser.lastName, updatedEntity.getLastName()));
+			updates.add(Updates.set(CUser.locale, updatedEntity.getLocale()));
+			updates.add(Updates.set(CUser.enabled, updatedEntity.isEnabled()));
+			if (updatedEntity.getAuthorities() != null
+					&& !updatedEntity.getAuthorities().isEmpty()) {
+				updates.add(
+						Updates.set(CUser.authorities, updatedEntity.getAuthorities()));
+			}
+			else {
+				updates.add(Updates.unset(CUser.authorities));
+			}
+			updates.add(Updates.setOnInsert(CUser.deleted, false));
+
+			this.mongoDb.getCollection(User.class).updateOne(
+					Filters.eq(CUser.id, updatedEntity.getId()), Updates.combine(updates),
 					new UpdateOptions().upsert(true));
 
 			if (!updatedEntity.isEnabled()) {
@@ -164,8 +157,9 @@ public class UserService {
 		return result;
 	}
 
-	private List<ValidationMessages> checkIfLastAdmin(User updatedEntity, Locale locale,
-			User dbUser) {
+	private List<ValidationMessages> checkIfLastAdmin(User updatedEntity, Locale locale) {
+		User dbUser = this.mongoDb.getCollection(User.class)
+				.find(Filters.eq(CUser.id, updatedEntity.getId())).first();
 
 		List<ValidationMessages> validationErrors = new ArrayList<>();
 
@@ -249,13 +243,6 @@ public class UserService {
 		}
 
 		return true;
-	}
-
-	@ExtDirectMethod(STORE_READ)
-	public List<Map<String, String>> readAuthorities() {
-		return Arrays.stream(Authority.values())
-				.map(r -> Collections.singletonMap("name", r.name()))
-				.collect(Collectors.toList());
 	}
 
 	@ExtDirectMethod

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotBlank;
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -194,11 +195,7 @@ public class User {
 	}
 
 	public boolean isTwoFactorAuth() {
-		return this.twoFactorAuth;
-	}
-
-	public void setTwoFactorAuth(boolean twoFactorAuth) {
-		this.twoFactorAuth = twoFactorAuth;
+		return StringUtils.hasText(this.getSecret());
 	}
 
 }
