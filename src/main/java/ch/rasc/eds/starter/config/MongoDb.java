@@ -2,7 +2,6 @@ package ch.rasc.eds.starter.config;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.catalina.User;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -16,6 +15,7 @@ import com.mongodb.client.model.Indexes;
 import ch.rasc.eds.starter.entity.CPersistentLogin;
 import ch.rasc.eds.starter.entity.CUser;
 import ch.rasc.eds.starter.entity.PersistentLogin;
+import ch.rasc.eds.starter.entity.User;
 
 @Component
 public class MongoDb {
