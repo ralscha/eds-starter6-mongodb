@@ -65,3 +65,12 @@ logging:
     org.apache: WARN
     ch: WARN
   file: ./app.log
+
+endpoints:
+  metrics:
+    enabled: false
+    filter:
+      enabled: false
+
+management:
+  add-application-context-header: false
