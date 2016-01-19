@@ -25,6 +25,7 @@ import ch.rasc.eds.starter.dto.UserDetailDto;
 import ch.rasc.eds.starter.entity.CUser;
 import ch.rasc.eds.starter.entity.User;
 import ch.rasc.eds.starter.service.SecurityService;
+import ch.rasc.eds.starter.web.CsrfController;
 
 @Component
 public class JsonAuthSuccessHandler implements AuthenticationSuccessHandler {
@@ -62,10 +63,9 @@ public class JsonAuthSuccessHandler implements AuthenticationSuccessHandler {
 				user = this.mongoDb.getCollection(User.class)
 						.find(Filters.eq(CUser.id, userDetails.getUserDbId())).first();
 			}
-			result.put(SecurityService.AUTH_USER, new UserDetailDto(userDetails, user));
+			result.put(SecurityService.AUTH_USER, new UserDetailDto(userDetails, user,
+					CsrfController.getCsrfToken(request)));
 		}
-
-		CsrfCookieFilter.addCsrfCookie(request, response);
 
 		response.getWriter().print(this.objectMapper.writeValueAsString(result));
 		response.getWriter().flush();

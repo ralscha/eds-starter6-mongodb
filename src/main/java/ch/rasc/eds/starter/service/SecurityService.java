@@ -47,6 +47,7 @@ import ch.rasc.eds.starter.dto.UserDetailDto;
 import ch.rasc.eds.starter.entity.CUser;
 import ch.rasc.eds.starter.entity.User;
 import ch.rasc.eds.starter.util.TotpAuthUtil;
+import ch.rasc.eds.starter.web.CsrfController;
 
 @Service
 public class SecurityService {
@@ -76,7 +77,7 @@ public class SecurityService {
 
 		if (userDetails != null) {
 			User user = userDetails.getUser(this.mongoDb);
-			UserDetailDto userDetailDto = new UserDetailDto(userDetails, user);
+			UserDetailDto userDetailDto = new UserDetailDto(userDetails, user, null);
 
 			if (!userDetails.isPreAuth()) {
 				this.mongoDb.getCollection(User.class).updateOne(
@@ -111,7 +112,8 @@ public class SecurityService {
 				SecurityContextHolder.getContext().setAuthentication(newAuth);
 
 				ExtDirectFormPostResult result = new ExtDirectFormPostResult();
-				result.addResultProperty(AUTH_USER, new UserDetailDto(userDetails, user));
+				result.addResultProperty(AUTH_USER, new UserDetailDto(userDetails, user,
+						CsrfController.getCsrfToken(request)));
 				return result;
 			}
 
@@ -216,7 +218,7 @@ public class SecurityService {
 
 					result = new ExtDirectFormPostResult();
 					result.addResultProperty(AUTH_USER,
-							new UserDetailDto(principal, user));
+							new UserDetailDto(principal, user, null));
 				}
 				else {
 					result = new ExtDirectFormPostResult(false);
@@ -249,7 +251,7 @@ public class SecurityService {
 
 			SecurityContextHolder.getContext().setAuthentication(token);
 
-			return new UserDetailDto(principal, switchToUser);
+			return new UserDetailDto(principal, switchToUser, null);
 		}
 
 		return null;
