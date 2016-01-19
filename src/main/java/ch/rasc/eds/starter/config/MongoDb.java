@@ -9,6 +9,9 @@ import org.springframework.util.StringUtils;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.gridfs.GridFSBucket;
+import com.mongodb.client.gridfs.GridFSBuckets;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
 
@@ -42,11 +45,15 @@ public class MongoDb {
 
 	}
 
-	private boolean indexExists(Class<?> clazz, String name) {
-		for (Document doc : this.getCollection(clazz).listIndexes()) {
+	public boolean indexExists(Class<?> clazz, String indexName) {
+		return indexExists(this.getCollection(clazz), indexName);
+	}
+
+	public boolean indexExists(MongoCollection<?> collection, String indexName) {
+		for (Document doc : collection.listIndexes()) {
 			Document key = (Document) doc.get("key");
 			if (key != null) {
-				if (key.containsKey(name)) {
+				if (key.containsKey(indexName)) {
 					return true;
 				}
 			}
@@ -54,13 +61,26 @@ public class MongoDb {
 		return false;
 	}
 
+	public boolean collectionExists(final Class<?> clazz) {
+		return collectionExists(getCollectionName(clazz));
+	}
+
+	public boolean collectionExists(final String collectionName) {
+		return this.mongoDatabase.listCollections()
+				.filter(Filters.eq("name", collectionName)).first() != null;
+	}
+
 	public MongoDatabase getMongoDatabase() {
 		return this.mongoDatabase;
 	}
 
 	public <T> MongoCollection<T> getCollection(Class<T> documentClass) {
-		return this.mongoDatabase.getCollection(
-				StringUtils.uncapitalize(documentClass.getSimpleName()), documentClass);
+		return this.mongoDatabase.getCollection(getCollectionName(documentClass),
+				documentClass);
+	}
+
+	private static String getCollectionName(Class<?> documentClass) {
+		return StringUtils.uncapitalize(documentClass.getSimpleName());
 	}
 
 	public <T> MongoCollection<T> getCollection(String collectionName,
@@ -74,5 +94,9 @@ public class MongoDb {
 
 	public long count(Class<?> documentClass) {
 		return this.getCollection(documentClass).count();
+	}
+
+	public GridFSBucket createBucket(String bucketName) {
+		return GridFSBuckets.create(this.mongoDatabase, bucketName);
 	}
 }
