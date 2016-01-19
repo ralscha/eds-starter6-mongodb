@@ -326,7 +326,6 @@ Ext.define('Starter.view.main.MainController', {
 	},
 
 	onLogoutClick: function() {
-		var me = this;
 		Ext.Ajax.request({
 			url: serverUrl + 'logout',
 			method: 'POST'
