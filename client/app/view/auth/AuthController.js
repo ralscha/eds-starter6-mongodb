@@ -39,6 +39,10 @@ Ext.define('Starter.view.auth.AuthController', {
 
 			},
 			failure: function(form, action) {
+				if (action.response.status === 403) {
+					window.location.reload();
+					return;
+				}
 				Starter.Util.errorToast(i18n.auth_signin_failed);
 			}
 		});
@@ -66,6 +70,10 @@ Ext.define('Starter.view.auth.AuthController', {
 				me.getView().up('window').destroy();
 			},
 			failure: function(form, action) {
+				if (action.response.status === 403) {
+					window.location.reload();
+					return;
+				}
 				Starter.Util.errorToast(i18n.auth_locked_resume_failed);
 			}
 		});
@@ -103,7 +111,11 @@ Ext.define('Starter.view.auth.AuthController', {
 					me.fireEvent('signedin', this, authUser);
 				}
 			},
-			failure: function() {
+			failure: function(form, action) {
+				if (action.response.status === 403) {
+					window.location.reload();
+					return;
+				}
 				me.redirectTo('auth.signin', true);
 			}
 		});
