@@ -61,12 +61,14 @@ Ext.define('Starter.view.user.Controller', {
 	},
 
 	sendPwResetReq: function() {
-		var selectedObject = this.getSelectedObject();
-		if (selectedObject) {
-			userService.sendPassordResetEmail(selectedObject.getId(), function() {
-				Starter.Util.successToast(i18n.user_sent_pwresetreq);
-			});
-		}
+		this.save(function() {
+			var selectedObject = this.getSelectedObject();
+			if (selectedObject) {
+				userService.sendPassordResetEmail(selectedObject.getId(), function() {
+					Starter.Util.successToast(i18n.user_sent_pwresetreq);
+				});
+			}
+		});
 	}
 
 });
