@@ -116,7 +116,7 @@
 		<dependency>
 			<groupId>de.danielbechler</groupId>
 			<artifactId>java-object-diff</artifactId>
-			<version>0.93</version>
+			<version>0.93.2</version>
 		</dependency>
 
 		<dependency>
@@ -140,7 +140,7 @@
 		<dependency>
 			<groupId>ch.rasc</groupId>
 			<artifactId>constgen</artifactId>
-			<version>1.0.2</version>
+			<version>1.0.3</version>
 			<optional>true</optional>
 		</dependency>
 
@@ -154,7 +154,7 @@
 		<dependency>
 			<groupId>ch.rasc</groupId>
 			<artifactId>bsoncodec-apt</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.1</version>
 			<optional>true</optional>
 		</dependency>
 
