@@ -148,7 +148,13 @@
 			<groupId>ch.rasc</groupId>
 			<artifactId>bsoncodec</artifactId>
 			<version>1.0.0</version>
-			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.immutables</groupId>
+			<artifactId>value</artifactId>
+			<version>2.1.12</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
@@ -204,11 +210,15 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.5.1</version>
 				<configuration>
 					<debug>true</debug>
 					<source>${java.version}</source>
 					<target>${java.version}</target>
-					<compilerArgument>-parameters</compilerArgument>
+					<compilerArgs>
+						<compilerArg>-parameters</compilerArg>
+						<compilerArg>-AgenerateCodecProvider=false</compilerArg>
+					</compilerArgs>
 				</configuration>
 			</plugin>
 
@@ -320,6 +330,7 @@
 									<fileset dir="${basedir}/client">
 										<include name="locale-*.js" />
 										<include name="i18n-*.js" />
+										<include name="robots.txt" />
 									</fileset>
 								</copy>
 
@@ -327,6 +338,8 @@
 									includeEmptyDirs="false">
 									<fileset dir="${basedir}/client/build/production/Starter">
 										<exclude name="**/Readme.md" />
+										<exclude name="resources/ext/" />
+										<exclude name="resources/fonts/OpenSans*" />
 									</fileset>
 								</copy>
 

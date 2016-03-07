@@ -66,7 +66,7 @@ public class MongoDb {
 	}
 
 	public boolean collectionExists(final String collectionName) {
-		return this.mongoDatabase.listCollections()
+		return this.getMongoDatabase().listCollections()
 				.filter(Filters.eq("name", collectionName)).first() != null;
 	}
 
@@ -75,7 +75,7 @@ public class MongoDb {
 	}
 
 	public <T> MongoCollection<T> getCollection(Class<T> documentClass) {
-		return this.mongoDatabase.getCollection(getCollectionName(documentClass),
+		return this.getMongoDatabase().getCollection(getCollectionName(documentClass),
 				documentClass);
 	}
 
@@ -85,11 +85,11 @@ public class MongoDb {
 
 	public <T> MongoCollection<T> getCollection(String collectionName,
 			Class<T> documentClass) {
-		return this.mongoDatabase.getCollection(collectionName, documentClass);
+		return this.getMongoDatabase().getCollection(collectionName, documentClass);
 	}
 
 	public MongoCollection<Document> getCollection(String collectionName) {
-		return this.mongoDatabase.getCollection(collectionName);
+		return this.getMongoDatabase().getCollection(collectionName);
 	}
 
 	public long count(Class<?> documentClass) {
@@ -97,6 +97,6 @@ public class MongoDb {
 	}
 
 	public GridFSBucket createBucket(String bucketName) {
-		return GridFSBuckets.create(this.mongoDatabase, bucketName);
+		return GridFSBuckets.create(this.getMongoDatabase(), bucketName);
 	}
 }
