@@ -18,13 +18,7 @@ mongodb:
 
 security:
   ignored:
-    - /resources/**
-    - /app.js
-    - /app.json
-    - /locale-de.js
-    - /i18n-de.js
-    - /i18n-en.js
-    - /robots.txt
+    - none
 
 spring:
   jackson:

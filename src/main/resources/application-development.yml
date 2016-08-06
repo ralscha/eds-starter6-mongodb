@@ -1,15 +1,6 @@
 spring:
   resources:
-    cache-period:
-
-security:
-  ignored:
-    - /resources/**
-    - /build/**
-    - /ext/**
-    - /**/*.js
-    - /bootstrap.json
-    - /robots.txt
+    cache-period: 0
 
 server:
   port: 8080
