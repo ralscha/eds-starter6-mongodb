@@ -18,7 +18,8 @@ Ext.define('Starter.view.user.Grid', {
 	},
 
 	listeners: {
-		itemclick: 'onItemclick'
+		itemclick: 'onItemclick',
+		afterRender: 'onBaseAfterRender'
 	},
 
 	cls: 'shadow',

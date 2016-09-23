@@ -1,5 +1,6 @@
 Ext.define('Starter.view.base.ViewController', {
 	extend: 'Ext.app.ViewController',
+	requires: 'Starter.view.base.GridCellToolTip',
 
 	config: {
 		objectStoreName: 'objects',
@@ -7,6 +8,12 @@ Ext.define('Starter.view.base.ViewController', {
 		formClassName: null,
 		objectName: 'Object',
 		objectNamePlural: 'Objects'
+	},
+
+	onBaseAfterRender: function(cmp) {
+		cmp.tip = Ext.create('Starter.view.base.GridCellToolTip', {
+			target: cmp.getView().getEl()
+		});
 	},
 
 	onObjectStoreLoad: function(store) {
