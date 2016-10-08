@@ -37,18 +37,10 @@ import ch.rasc.eds.starter.entity.Authority;
 
 @Configuration
 @Profile("development")
-class DevelopmentConfig extends WebMvcConfigurerAdapter {
+class DevelopmentConfig {
 
 	@Value("${info.app.name}")
 	private String appName;
-
-	@Override
-	public void addResourceHandlers(ResourceHandlerRegistry registry) {
-		String userDir = System.getProperty("user.dir");
-		registry.addResourceHandler("/**")
-				.addResourceLocations(Paths.get(userDir, "client").toUri().toString())
-				.setCachePeriod(0);
-	}
 
 	@Bean
 	public FilterRegistrationBean corsFilter() {
@@ -62,11 +54,6 @@ class DevelopmentConfig extends WebMvcConfigurerAdapter {
 		filter.setUrlPatterns(Collections.singleton("/*"));
 		filter.setOrder(SecurityProperties.DEFAULT_FILTER_ORDER - 1);
 		return filter;
-	}
-
-	@Override
-	public void addViewControllers(ViewControllerRegistry registry) {
-		registry.addViewController("/").setViewName("forward:/index.html");
 	}
 
 	@EventListener

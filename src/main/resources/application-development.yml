@@ -1,6 +1,9 @@
 spring:
   resources:
     cache-period: 0
+    static-locations: file:./client/
+  jpa:
+    show-sql: true
 
 server:
   port: 8080
