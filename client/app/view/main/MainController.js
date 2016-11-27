@@ -330,6 +330,7 @@ Ext.define('Starter.view.main.MainController', {
 			url: serverUrl + 'logout',
 			method: 'POST'
 		}).then(function(r) {
+			sessionStorage.clear();
 			var currentLocation = window.location.toString();
 			var hashPos = currentLocation.indexOf("#");
 			if (hashPos > 0) {
