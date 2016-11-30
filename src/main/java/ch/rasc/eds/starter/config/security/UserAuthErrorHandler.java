@@ -4,7 +4,6 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Date;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.stereotype.Component;
@@ -30,7 +29,6 @@ public class UserAuthErrorHandler
 
 	private final Integer loginLockMinutes;
 
-	@Autowired
 	public UserAuthErrorHandler(MongoDb mongoDb, AppProperties appProperties) {
 		this.mongoDb = mongoDb;
 		this.loginLockAttempts = appProperties.getLoginLockAttempts();
@@ -50,15 +48,13 @@ public class UserAuthErrorHandler
 
 			User user = null;
 			if (principal instanceof String) {
-
 				user = this.mongoDb.getCollection(User.class).findOneAndUpdate(
-						Filters.and(Filters.eq(CUser.email, principal),
+						Filters.and(Filters.eq(CUser.loginName, principal),
 								Filters.eq(CUser.deleted, false)),
 						Updates.inc(CUser.failedLogins, 1), new FindOneAndUpdateOptions()
 								.returnDocument(ReturnDocument.AFTER).upsert(false));
 			}
 			else {
-
 				user = this.mongoDb.getCollection(User.class).findOneAndUpdate(
 						Filters.eq(CUser.id,
 								((MongoUserDetails) principal).getUserDbId()),
@@ -81,8 +77,9 @@ public class UserAuthErrorHandler
 								.updateOne(Filters.eq(CUser.id, user.getId()),
 										Updates.set(CUser.lockedOutUntil,
 												Date.from(ZonedDateTime
-														.now(ZoneOffset.UTC)
-														.plusYears(1000).toInstant())));
+														.now(ZoneOffset.UTC).plusYears(
+																1000)
+														.toInstant())));
 					}
 				}
 			}

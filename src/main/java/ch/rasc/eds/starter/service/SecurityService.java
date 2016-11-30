@@ -14,7 +14,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.bson.conversions.Bson;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -61,7 +60,6 @@ public class SecurityService {
 
 	private final ApplicationEventPublisher applicationEventPublisher;
 
-	@Autowired
 	public SecurityService(MongoDb mongoDb, PasswordEncoder passwordEncoder,
 			MailService mailService,
 			ApplicationEventPublisher applicationEventPublisher) {
@@ -163,12 +161,15 @@ public class SecurityService {
 	}
 
 	@ExtDirectMethod(ExtDirectMethodType.FORM_POST)
-	public ExtDirectFormPostResult resetRequest(@RequestParam("email") String email) {
+	public ExtDirectFormPostResult resetRequest(
+			@RequestParam("email") String emailOrLoginName) {
 
 		String token = UUID.randomUUID().toString();
 
 		User user = this.mongoDb.getCollection(User.class).findOneAndUpdate(
-				Filters.and(Filters.eq(CUser.email, email),
+				Filters.and(
+						Filters.or(Filters.eq(CUser.email, emailOrLoginName),
+								Filters.eq(CUser.loginName, emailOrLoginName)),
 						Filters.eq(CUser.deleted, false)),
 				Updates.combine(
 						Updates.set(CUser.passwordResetTokenValidUntil,

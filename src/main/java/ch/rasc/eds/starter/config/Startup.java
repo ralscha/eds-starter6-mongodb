@@ -2,7 +2,6 @@ package ch.rasc.eds.starter.config;
 
 import java.util.Arrays;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +17,6 @@ class Startup {
 
 	private final PasswordEncoder passwordEncoder;
 
-	@Autowired
 	public Startup(MongoDb mongoDb, PasswordEncoder passwordEncoder) {
 		this.mongoDb = mongoDb;
 		this.passwordEncoder = passwordEncoder;
@@ -31,6 +29,7 @@ class Startup {
 		if (userCollection.count() == 0) {
 			// admin user
 			User adminUser = new User();
+			adminUser.setLoginName("admin");
 			adminUser.setEmail("admin@starter.com");
 			adminUser.setFirstName("admin");
 			adminUser.setLastName("admin");
@@ -43,6 +42,7 @@ class Startup {
 
 			// normal user
 			User normalUser = new User();
+			normalUser.setLoginName("user");
 			normalUser.setEmail("user@starter.com");
 			normalUser.setFirstName("user");
 			normalUser.setLastName("user");

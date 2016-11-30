@@ -31,6 +31,9 @@ public class User {
 	private String id;
 
 	@NotBlank(message = "{fieldrequired}")
+	private String loginName;
+
+	@NotBlank(message = "{fieldrequired}")
 	private String lastName;
 
 	@NotBlank(message = "{fieldrequired}")
@@ -40,6 +43,7 @@ public class User {
 	@NotBlank(message = "{fieldrequired}")
 	private String email;
 
+	@ModelField(type=ModelType.AUTO)
 	private List<String> authorities;
 
 	@JsonIgnore
@@ -77,6 +81,14 @@ public class User {
 
 	public void setId(String id) {
 		this.id = id;
+	}
+
+	public String getLoginName() {
+		return this.loginName;
+	}
+
+	public void setLoginName(String loginName) {
+		this.loginName = loginName;
 	}
 
 	public String getLastName() {

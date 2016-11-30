@@ -13,6 +13,12 @@ Ext.define("Starter.model.User",
     allowNull : true,
     convert : null
   }, {
+    name : "loginName",
+    type : "string",
+    validators : [ {
+      type : "notBlank"
+    } ]
+  }, {
     name : "lastName",
     type : "string",
     validators : [ {
@@ -32,7 +38,7 @@ Ext.define("Starter.model.User",
     }, {
       type : "notBlank"
     } ]
-  }, {
+  }, "authorities", {
     name : "locale",
     type : "string",
     validators : [ {

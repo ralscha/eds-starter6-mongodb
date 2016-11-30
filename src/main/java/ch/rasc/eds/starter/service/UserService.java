@@ -14,7 +14,6 @@ import java.util.UUID;
 import javax.validation.Validator;
 
 import org.bson.conversions.Bson;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -59,7 +58,6 @@ public class UserService {
 
 	private final MailService mailService;
 
-	@Autowired
 	public UserService(MongoDb mongoDb, Validator validator, MessageSource messageSource,
 			MailService mailService) {
 		this.mongoDb = mongoDb;
@@ -75,6 +73,7 @@ public class UserService {
 		StringFilter filter = request.getFirstFilterForField("filter");
 		if (filter != null) {
 			List<Bson> orFilters = new ArrayList<>();
+			orFilters.add(Filters.regex(CUser.loginName, filter.getValue(), "i"));
 			orFilters.add(Filters.regex(CUser.lastName, filter.getValue(), "i"));
 			orFilters.add(Filters.regex(CUser.firstName, filter.getValue(), "i"));
 			orFilters.add(Filters.regex(CUser.email, filter.getValue(), "i"));
@@ -100,8 +99,12 @@ public class UserService {
 		ExtDirectStoreResult<User> result = new ExtDirectStoreResult<>();
 		if (!isLastAdmin(destroyUser.getId())) {
 			this.mongoDb.getCollection(User.class).updateOne(
-					Filters.eq(CUser.id, destroyUser.getId()),
-					Updates.set(CUser.deleted, true));
+					Filters.eq(CUser.id, destroyUser.getId()),					
+					Updates.combine(Updates.set(CUser.deleted, true),
+							Updates.set(CUser.enabled, false),
+							Updates.unset(CUser.loginName),
+							Updates.unset(CUser.email),
+							Updates.unset(CUser.passwordHash)));
 			result.setSuccess(Boolean.TRUE);
 
 			deletePersistentLogins(destroyUser.getId());
@@ -125,6 +128,7 @@ public class UserService {
 		if (violations.isEmpty()) {
 
 			List<Bson> updates = new ArrayList<>();
+			updates.add(Updates.set(CUser.loginName, updatedEntity.getLoginName()));
 			updates.add(Updates.set(CUser.email, updatedEntity.getEmail()));
 			updates.add(Updates.set(CUser.firstName, updatedEntity.getFirstName()));
 			updates.add(Updates.set(CUser.lastName, updatedEntity.getLastName()));
@@ -212,6 +216,14 @@ public class UserService {
 			validations.add(validationError);
 		}
 
+		if (!isLoginNameUnique(user.getId(), user.getLoginName())) {
+			ValidationMessages validationError = new ValidationMessages();
+			validationError.setField(CUser.loginName);
+			validationError.setMessage(
+					this.messageSource.getMessage("user_loginnametaken", null, locale));
+			validations.add(validationError);
+		}
+
 		return validations;
 	}
 
@@ -243,6 +255,26 @@ public class UserService {
 		}
 
 		return true;
+	}
+
+	private boolean isLoginNameUnique(String userId, String loginName) {
+		if (StringUtils.hasText(loginName)) {
+			long count;
+			if (userId != null) {
+				count = this.mongoDb.getCollection(User.class)
+						.count(Filters.and(Filters.regex(CUser.loginName,
+								"^" + loginName + "$", "i"),
+								Filters.ne(CUser.id, userId)));
+			}
+			else {
+				count = this.mongoDb.getCollection(User.class).count(
+						Filters.regex(CUser.loginName, "^" + loginName + "$", "i"));
+
+			}
+			return count == 0;
+		}
+
+		return false;
 	}
 
 	@ExtDirectMethod

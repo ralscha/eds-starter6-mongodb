@@ -3,7 +3,6 @@ package ch.rasc.eds.starter.config;
 import javax.annotation.PostConstruct;
 
 import org.bson.Document;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -25,7 +24,6 @@ public class MongoDb {
 
 	private final MongoDatabase mongoDatabase;
 
-	@Autowired
 	public MongoDb(final MongoDatabase mongoDatabase) {
 		this.mongoDatabase = mongoDatabase;
 	}

@@ -29,7 +29,7 @@ public class MongoUserDetails implements UserDetails {
 
 	private final String password;
 
-	private final String email;
+	private final String loginName;
 
 	private final boolean enabled;
 
@@ -45,7 +45,7 @@ public class MongoUserDetails implements UserDetails {
 		this.userDbId = user.getId();
 
 		this.password = user.getPasswordHash();
-		this.email = user.getEmail();
+		this.loginName = user.getLoginName();
 		this.enabled = user.isEnabled();
 
 		if (StringUtils.hasText(user.getLocale())) {
@@ -94,7 +94,7 @@ public class MongoUserDetails implements UserDetails {
 
 	@Override
 	public String getUsername() {
-		return this.email;
+		return this.loginName;
 	}
 
 	public User getUser(MongoDb mongoDb) {

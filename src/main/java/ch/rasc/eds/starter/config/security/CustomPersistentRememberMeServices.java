@@ -11,7 +11,6 @@ import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -82,7 +81,6 @@ public class CustomPersistentRememberMeServices extends AbstractRememberMeServic
 
 	private final int tokenValidInSeconds;
 
-	@Autowired
 	public CustomPersistentRememberMeServices(MongoDb mongoDb,
 			UserDetailsService userDetailsService, AppProperties appProperties) {
 		super(appProperties.getRemembermeCookieKey(), userDetailsService);
@@ -115,9 +113,9 @@ public class CustomPersistentRememberMeServices extends AbstractRememberMeServic
 		User user = this.mongoDb.getCollection(User.class)
 				.find(Filters.and(Filters.eq(CUser.id, pl.getUserId()),
 						Filters.eq(CUser.deleted, false)))
-				.projection(Projections.include(CUser.email)).first();
+				.projection(Projections.include(CUser.loginName)).first();
 
-		String loginName = user.getEmail();
+		String loginName = user.getLoginName();
 		String token = pl.getToken();
 
 		Application.logger.debug(
@@ -143,7 +141,7 @@ public class CustomPersistentRememberMeServices extends AbstractRememberMeServic
 		Application.logger.debug("Creating new persistent login for user {}", loginName);
 
 		User user = this.mongoDb.getCollection(User.class)
-				.find(Filters.and(Filters.eq(CUser.email, loginName),
+				.find(Filters.and(Filters.eq(CUser.loginName, loginName),
 						Filters.eq(CUser.deleted, false)))
 				.first();
 

@@ -9,7 +9,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -34,7 +33,6 @@ public class JsonAuthSuccessHandler implements AuthenticationSuccessHandler {
 
 	private final ObjectMapper objectMapper;
 
-	@Autowired
 	public JsonAuthSuccessHandler(MongoDb mongoDb, ObjectMapper objectMapper) {
 		this.mongoDb = mongoDb;
 		this.objectMapper = objectMapper;
@@ -43,7 +41,7 @@ public class JsonAuthSuccessHandler implements AuthenticationSuccessHandler {
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request,
 			HttpServletResponse response, Authentication authentication)
-					throws IOException, ServletException {
+			throws IOException, ServletException {
 
 		Map<String, Object> result = new HashMap<>();
 		result.put("success", true);
@@ -66,7 +64,7 @@ public class JsonAuthSuccessHandler implements AuthenticationSuccessHandler {
 			result.put(SecurityService.AUTH_USER, new UserDetailDto(userDetails, user,
 					CsrfController.getCsrfToken(request)));
 		}
-
+		response.setCharacterEncoding("UTF-8");
 		response.getWriter().print(this.objectMapper.writeValueAsString(result));
 		response.getWriter().flush();
 	}

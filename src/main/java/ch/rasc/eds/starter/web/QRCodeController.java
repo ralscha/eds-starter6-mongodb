@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -30,7 +29,6 @@ public class QRCodeController {
 
 	private final String appName;
 
-	@Autowired
 	QRCodeController(MongoDb mongoDb, @Value("${info.app.name}") String appName) {
 		this.mongoDb = mongoDb;
 		this.appName = appName;
@@ -40,7 +38,7 @@ public class QRCodeController {
 	@RequestMapping(value = "/qr", method = RequestMethod.GET)
 	public void qrcode(HttpServletResponse response,
 			@AuthenticationPrincipal MongoUserDetails userDetails)
-					throws WriterException, IOException {
+			throws WriterException, IOException {
 
 		User user = userDetails.getUser(this.mongoDb);
 		if (user != null && StringUtils.hasText(user.getSecret())) {

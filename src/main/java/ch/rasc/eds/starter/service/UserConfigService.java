@@ -12,7 +12,6 @@ import java.util.stream.StreamSupport;
 import javax.validation.Validator;
 
 import org.bson.conversions.Bson;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -50,7 +49,6 @@ public class UserConfigService {
 
 	private final MessageSource messageSource;
 
-	@Autowired
 	public UserConfigService(MongoDb mongoDb, Validator validator,
 			PasswordEncoder passwordEncoder, MessageSource messageSource) {
 		this.mongoDb = mongoDb;
