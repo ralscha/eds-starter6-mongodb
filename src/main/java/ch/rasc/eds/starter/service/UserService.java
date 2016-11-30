@@ -99,11 +99,10 @@ public class UserService {
 		ExtDirectStoreResult<User> result = new ExtDirectStoreResult<>();
 		if (!isLastAdmin(destroyUser.getId())) {
 			this.mongoDb.getCollection(User.class).updateOne(
-					Filters.eq(CUser.id, destroyUser.getId()),					
+					Filters.eq(CUser.id, destroyUser.getId()),
 					Updates.combine(Updates.set(CUser.deleted, true),
 							Updates.set(CUser.enabled, false),
-							Updates.unset(CUser.loginName),
-							Updates.unset(CUser.email),
+							Updates.unset(CUser.loginName), Updates.unset(CUser.email),
 							Updates.unset(CUser.passwordHash)));
 			result.setSuccess(Boolean.TRUE);
 
@@ -208,7 +207,7 @@ public class UserService {
 		List<ValidationMessages> validations = ValidationUtil
 				.validateEntity(this.validator, user);
 
-		if (!isEmailUnique(user.getId(), user.getEmail())) {
+		if (!isEmailUnique(this.mongoDb, user.getId(), user.getEmail())) {
 			ValidationMessages validationError = new ValidationMessages();
 			validationError.setField(CUser.email);
 			validationError.setMessage(
@@ -216,7 +215,7 @@ public class UserService {
 			validations.add(validationError);
 		}
 
-		if (!isLoginNameUnique(user.getId(), user.getLoginName())) {
+		if (!isLoginNameUnique(this.mongoDb, user.getId(), user.getLoginName())) {
 			ValidationMessages validationError = new ValidationMessages();
 			validationError.setField(CUser.loginName);
 			validationError.setMessage(
@@ -237,17 +236,17 @@ public class UserService {
 		return count == 0;
 	}
 
-	private boolean isEmailUnique(String userId, String email) {
+	public static boolean isEmailUnique(MongoDb mongoDb, String userId, String email) {
 		if (StringUtils.hasText(email)) {
 			long count;
 			if (userId != null) {
-				count = this.mongoDb.getCollection(User.class)
+				count = mongoDb.getCollection(User.class)
 						.count(Filters.and(
 								Filters.regex(CUser.email, "^" + email + "$", "i"),
 								Filters.ne(CUser.id, userId)));
 			}
 			else {
-				count = this.mongoDb.getCollection(User.class)
+				count = mongoDb.getCollection(User.class)
 						.count(Filters.regex(CUser.email, "^" + email + "$", "i"));
 			}
 
@@ -257,17 +256,18 @@ public class UserService {
 		return true;
 	}
 
-	private boolean isLoginNameUnique(String userId, String loginName) {
+	public static boolean isLoginNameUnique(MongoDb mongoDb, String userId,
+			String loginName) {
 		if (StringUtils.hasText(loginName)) {
 			long count;
 			if (userId != null) {
-				count = this.mongoDb.getCollection(User.class)
+				count = mongoDb.getCollection(User.class)
 						.count(Filters.and(Filters.regex(CUser.loginName,
 								"^" + loginName + "$", "i"),
 								Filters.ne(CUser.id, userId)));
 			}
 			else {
-				count = this.mongoDb.getCollection(User.class).count(
+				count = mongoDb.getCollection(User.class).count(
 						Filters.regex(CUser.loginName, "^" + loginName + "$", "i"));
 
 			}

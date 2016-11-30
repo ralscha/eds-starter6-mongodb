@@ -122,7 +122,8 @@ public class UserConfigService {
 			}
 		}
 
-		if (!isEmailUnique(user.getId(), modifiedUserSettings.getEmail())) {
+		if (!UserService.isEmailUnique(this.mongoDb, user.getId(),
+				modifiedUserSettings.getEmail())) {
 			ValidationMessages validationError = new ValidationMessages();
 			validationError.setField(CUser.email);
 			validationError.setMessage(
@@ -130,12 +131,23 @@ public class UserConfigService {
 			validations.add(validationError);
 		}
 
+		if (!UserService.isLoginNameUnique(this.mongoDb, user.getId(),
+				modifiedUserSettings.getLoginName())) {
+			ValidationMessages validationError = new ValidationMessages();
+			validationError.setField(CUser.loginName);
+			validationError.setMessage(
+					this.messageSource.getMessage("user_loginnametaken", null, locale));
+			validations.add(validationError);
+		}
+
 		if (validations.isEmpty()) {
+			user.setLoginName(modifiedUserSettings.getLoginName());
 			user.setLastName(modifiedUserSettings.getLastName());
 			user.setFirstName(modifiedUserSettings.getFirstName());
 			user.setEmail(modifiedUserSettings.getEmail());
 			user.setLocale(modifiedUserSettings.getLocale());
 
+			updates.add(Updates.set(CUser.loginName, user.getLoginName()));
 			updates.add(Updates.set(CUser.lastName, user.getLastName()));
 			updates.add(Updates.set(CUser.firstName, user.getFirstName()));
 			updates.add(Updates.set(CUser.email, user.getEmail()));
@@ -148,12 +160,6 @@ public class UserConfigService {
 		}
 
 		return new ValidationMessagesResult<>(modifiedUserSettings, validations);
-	}
-
-	private boolean isEmailUnique(String userId, String email) {
-		return this.mongoDb.getCollection(User.class)
-				.count(Filters.and(Filters.regex(CUser.email, "^" + email + "$", "i"),
-						Filters.ne(CUser.id, userId))) == 0;
 	}
 
 	@ExtDirectMethod(STORE_READ)
