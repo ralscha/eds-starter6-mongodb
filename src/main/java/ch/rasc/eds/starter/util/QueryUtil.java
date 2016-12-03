@@ -8,7 +8,7 @@ import java.util.stream.StreamSupport;
 
 import org.bson.conversions.Bson;
 
-import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.Sorts;
 
 import ch.ralscha.extdirectspring.bean.ExtDirectStoreReadRequest;
@@ -31,12 +31,12 @@ public abstract class QueryUtil {
 		return sorts;
 	}
 
-	public static <T> List<T> toList(FindIterable<T> iterable) {
+	public static <T> List<T> toList(MongoIterable<T> iterable) {
 		return StreamSupport.stream(iterable.spliterator(), false)
 				.collect(Collectors.toList());
 	}
 
-	public static <T> Stream<T> stream(FindIterable<T> iterable) {
+	public static <T> Stream<T> stream(MongoIterable<T> iterable) {
 		return StreamSupport.stream(iterable.spliterator(), false);
 	}
 }
