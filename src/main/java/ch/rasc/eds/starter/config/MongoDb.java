@@ -90,6 +90,10 @@ public class MongoDb {
 		return this.getMongoDatabase().getCollection(collectionName);
 	}
 
+	public <T> T findFirst(Class<T> documentClass, String field, Object value) {
+		return getCollection(documentClass).find(Filters.eq(field, value)).first();
+	}
+	
 	public long count(Class<?> documentClass) {
 		return this.getCollection(documentClass).count();
 	}
