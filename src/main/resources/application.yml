@@ -16,10 +16,6 @@ app:
 mongodb:
   uri: mongodb://localhost/starter6?w=1&wtimeoutMS=0&journal=true
 
-security:
-  ignored:
-    - none
-
 spring:
   jackson:
     serialization:
