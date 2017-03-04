@@ -23,9 +23,7 @@
 
 	<properties>
 		<start-class>ch.rasc.eds.starter.Application</start-class>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring-security.version>4.2.2.RELEASE</spring-security.version>
-		<jackson.version>2.8.7</jackson.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>		
 		<jmustache.version>1.13</jmustache.version>
 		<java.version>1.8</java.version>
 		<maven.build.timestamp.format>yyyy-MM-dd'T'HH-mm-ssZ</maven.build.timestamp.format>
