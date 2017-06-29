@@ -77,9 +77,8 @@ public class UserAuthErrorHandler
 								.updateOne(Filters.eq(CUser.id, user.getId()),
 										Updates.set(CUser.lockedOutUntil,
 												Date.from(ZonedDateTime
-														.now(ZoneOffset.UTC).plusYears(
-																1000)
-														.toInstant())));
+														.now(ZoneOffset.UTC)
+														.plusYears(1000).toInstant())));
 					}
 				}
 			}

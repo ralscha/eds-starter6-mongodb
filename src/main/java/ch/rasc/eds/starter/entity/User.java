@@ -43,7 +43,7 @@ public class User {
 	@NotBlank(message = "{fieldrequired}")
 	private String email;
 
-	@ModelField(type=ModelType.AUTO)
+	@ModelField(type = ModelType.AUTO)
 	private List<String> authorities;
 
 	@JsonIgnore

@@ -49,7 +49,7 @@ public class UserSettings {
 	}
 
 	public String getLoginName() {
-		return loginName;
+		return this.loginName;
 	}
 
 	public void setLoginName(String loginName) {
