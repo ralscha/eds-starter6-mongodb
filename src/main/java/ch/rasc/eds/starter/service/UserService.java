@@ -98,12 +98,8 @@ public class UserService {
 	public ExtDirectStoreResult<User> destroy(User destroyUser) {
 		ExtDirectStoreResult<User> result = new ExtDirectStoreResult<>();
 		if (!isLastAdmin(destroyUser.getId())) {
-			this.mongoDb.getCollection(User.class).updateOne(
-					Filters.eq(CUser.id, destroyUser.getId()),
-					Updates.combine(Updates.set(CUser.deleted, true),
-							Updates.set(CUser.enabled, false),
-							Updates.unset(CUser.loginName), Updates.unset(CUser.email),
-							Updates.unset(CUser.passwordHash)));
+			this.mongoDb.getCollection(User.class)
+					.deleteOne(Filters.eq(CUser.id, destroyUser.getId()));
 			result.setSuccess(Boolean.TRUE);
 
 			deletePersistentLogins(destroyUser.getId());

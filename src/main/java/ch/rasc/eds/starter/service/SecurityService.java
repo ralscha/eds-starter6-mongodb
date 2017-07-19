@@ -30,7 +30,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
-import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.Updates;
 
@@ -135,29 +134,6 @@ public class SecurityService {
 		}
 
 		return new ExtDirectFormPostResult(false);
-	}
-
-	@ExtDirectMethod
-	@RequireAnyAuthority
-	public void enableScreenLock(@AuthenticationPrincipal MongoUserDetails userDetails) {
-		userDetails.setScreenLocked(true);
-	}
-
-	@ExtDirectMethod(ExtDirectMethodType.FORM_POST)
-	@RequireAnyAuthority
-	public ExtDirectFormPostResult disableScreenLock(
-			@AuthenticationPrincipal MongoUserDetails userDetails,
-			@RequestParam("password") String password) {
-
-		User user = this.mongoDb.getCollection(User.class)
-				.find(Filters.eq(CUser.id, userDetails.getUserDbId()))
-				.projection(Projections.include(CUser.passwordHash)).first();
-
-		boolean matches = this.passwordEncoder.matches(password, user.getPasswordHash());
-		userDetails.setScreenLocked(!matches);
-		ExtDirectFormPostResult result = new ExtDirectFormPostResult(matches);
-
-		return result;
 	}
 
 	@ExtDirectMethod(ExtDirectMethodType.FORM_POST)
