@@ -43,6 +43,7 @@
         color: $base-color;
         text-decoration:none;
         margin-left:5px;
+        cursor: pointer;
         &:hover{
             text-decoration:underline;
         }
