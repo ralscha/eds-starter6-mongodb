@@ -20,7 +20,7 @@
 
 	<properties>
 		<start-class>ch.rasc.eds.starter.Application</start-class>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>		
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jmustache.version>1.13</jmustache.version>
 		<java.version>1.8</java.version>
 		<maven.build.timestamp.format>yyyy-MM-dd'T'HH-mm-ssZ</maven.build.timestamp.format>
@@ -31,7 +31,7 @@
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver</artifactId>
-			<version>3.6.0-rc1</version>
+			<version>3.6.0</version>
 		</dependency>
 
 		<dependency>
@@ -49,7 +49,7 @@
 			<artifactId>spring-boot-starter-undertow</artifactId>
 		</dependency>
 
- 		<dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
@@ -116,12 +116,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-configuration-processor</artifactId>
-			<optional>true</optional>
-		</dependency>
-
-		<dependency>
 			<groupId>com.google.zxing</groupId>
 			<artifactId>javase</artifactId>
 			<version>3.3.1</version>
@@ -135,29 +129,14 @@
 
 		<dependency>
 			<groupId>ch.rasc</groupId>
-			<artifactId>constgen</artifactId>
-			<version>1.0.3</version>
-			<optional>true</optional>
-		</dependency>
-
-		<dependency>
-			<groupId>ch.rasc</groupId>
 			<artifactId>bsoncodec</artifactId>
 			<version>1.0.1</version>
 		</dependency>
 
 		<dependency>
-			<groupId>org.immutables</groupId>
-			<artifactId>value</artifactId>
-			<version>2.5.6</version>
-			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
 			<groupId>ch.rasc</groupId>
-			<artifactId>bsoncodec-apt</artifactId>
-			<version>1.0.4</version>
-			<optional>true</optional>
+			<artifactId>bsoncodec-annotations</artifactId>
+			<version>1.0.5</version>
 		</dependency>
 
 	</dependencies>
@@ -169,38 +148,6 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<excludes>
-						<exclude>
-							<groupId>ch.rasc</groupId>
-							<artifactId>constgen</artifactId>
-						</exclude>
-						<exclude>
-							<groupId>ch.rasc</groupId>
-							<artifactId>bsoncodec-apt</artifactId>
-						</exclude>
-						<exclude>
-							<groupId>com.squareup</groupId>
-							<artifactId>javapoet</artifactId>
-						</exclude>
-						<exclude>
-							<groupId>com.google.auto</groupId>
-							<artifactId>auto-common</artifactId>
-						</exclude>
-						<exclude>
-							<groupId>com.google.auto.service</groupId>
-							<artifactId>auto-service</artifactId>
-						</exclude>
-						<exclude>
-							<groupId>org.immutables</groupId>
-							<artifactId>value</artifactId>
-						</exclude>
-						<exclude>
-							<groupId>com.google.code.findbugs</groupId>
-							<artifactId>jsr305</artifactId>
-						</exclude>
-					</excludes>
-				</configuration>
 			</plugin>
 
 			<plugin>
@@ -215,6 +162,28 @@
 					<compilerArgs>
 						<compilerArg>-AgenerateCodecProvider=false</compilerArg>
 					</compilerArgs>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.springframework.boot</groupId>
+							<artifactId>spring-boot-configuration-processor</artifactId>
+							<version>1.5.9.RELEASE</version>
+						</path>
+						<path>
+							<groupId>ch.rasc</groupId>
+							<artifactId>constgen</artifactId>
+							<version>1.0.3</version>
+						</path>
+						<path>
+							<groupId>ch.rasc</groupId>
+							<artifactId>bsoncodec-apt</artifactId>
+							<version>1.0.5</version>
+						</path>
+						<path>
+							<groupId>org.immutables</groupId>
+							<artifactId>value</artifactId>
+							<version>2.5.6</version>
+						</path>
+					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
 
@@ -329,9 +298,10 @@
 										<include name="robots.txt" />
 									</fileset>
 								</copy>
-								
-								<copy file="${basedir}/client/ext/classic/locale/overrides/de/ext-locale-de.js"
-								      todir="${basedir}/target/classes/static" />
+
+								<copy
+									file="${basedir}/client/ext/classic/locale/overrides/de/ext-locale-de.js"
+									todir="${basedir}/target/classes/static" />
 
 								<copy todir="${basedir}/target/classes/static"
 									includeEmptyDirs="false">
