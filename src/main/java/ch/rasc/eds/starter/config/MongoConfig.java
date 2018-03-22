@@ -25,10 +25,10 @@ public class MongoConfig {
 		MongoClientURI uri = new MongoClientURI(properties.getUri());
 		return mongoClient.getDatabase(uri.getDatabase())
 				.withCodecRegistry(CodecRegistries.fromRegistries(
-						MongoClient.getDefaultCodecRegistry(),
 						CodecRegistries.fromProviders(new ListCodec.Provider()),
 						CodecRegistries.fromProviders(
-								new ch.rasc.eds.starter.config.PojoCodecProvider())));
+								new ch.rasc.eds.starter.config.PojoCodecProvider()),
+						MongoClient.getDefaultCodecRegistry()));
 	}
 
 }

@@ -1,7 +1,5 @@
 Ext.define('Starter.view.user.Grid', {
 	extend: 'Ext.grid.Panel',
-	stateful: true,
-	stateId: 'view.user.Grid',
 
 	autoLoad: true,
 
