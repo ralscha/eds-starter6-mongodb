@@ -26,7 +26,7 @@ class Startup {
 	private void init() {
 
 		MongoCollection<User> userCollection = this.mongoDb.getCollection(User.class);
-		if (userCollection.count() == 0) {
+		if (userCollection.countDocuments() == 0) {
 			// admin user
 			User adminUser = new User();
 			adminUser.setLoginName("admin");

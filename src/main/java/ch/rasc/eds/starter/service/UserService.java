@@ -83,7 +83,7 @@ public class UserService {
 		andFilters.add(Filters.eq(CUser.deleted, false));
 
 		long total = this.mongoDb.getCollection(User.class)
-				.count(Filters.and(andFilters));
+				.countDocuments(Filters.and(andFilters));
 
 		FindIterable<User> find = this.mongoDb.getCollection(User.class)
 				.find(Filters.and(andFilters));
@@ -225,7 +225,7 @@ public class UserService {
 	private boolean isLastAdmin(String id) {
 
 		long count = this.mongoDb.getCollection(User.class)
-				.count(Filters.and(Filters.ne(CUser.id, id),
+				.countDocuments(Filters.and(Filters.ne(CUser.id, id),
 						Filters.eq(CUser.deleted, false),
 						Filters.eq(CUser.authorities, Authority.ADMIN.name()),
 						Filters.eq(CUser.enabled, true)));
@@ -237,13 +237,13 @@ public class UserService {
 			long count;
 			if (userId != null) {
 				count = mongoDb.getCollection(User.class)
-						.count(Filters.and(
+						.countDocuments(Filters.and(
 								Filters.regex(CUser.email, "^" + email + "$", "i"),
 								Filters.ne(CUser.id, userId)));
 			}
 			else {
 				count = mongoDb.getCollection(User.class)
-						.count(Filters.regex(CUser.email, "^" + email + "$", "i"));
+						.countDocuments(Filters.regex(CUser.email, "^" + email + "$", "i"));
 			}
 
 			return count == 0;
@@ -258,12 +258,12 @@ public class UserService {
 			long count;
 			if (userId != null) {
 				count = mongoDb.getCollection(User.class)
-						.count(Filters.and(Filters.regex(CUser.loginName,
+						.countDocuments(Filters.and(Filters.regex(CUser.loginName,
 								"^" + loginName + "$", "i"),
 								Filters.ne(CUser.id, userId)));
 			}
 			else {
-				count = mongoDb.getCollection(User.class).count(
+				count = mongoDb.getCollection(User.class).countDocuments(
 						Filters.regex(CUser.loginName, "^" + loginName + "$", "i"));
 
 			}

@@ -95,7 +95,7 @@ public class MongoDb {
 	}
 
 	public long count(Class<?> documentClass) {
-		return this.getCollection(documentClass).count();
+		return this.getCollection(documentClass).countDocuments();
 	}
 
 	public GridFSBucket createBucket(String bucketName) {
