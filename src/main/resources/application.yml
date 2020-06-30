@@ -15,6 +15,7 @@ app:
 
 mongodb:
   uri: mongodb://localhost/starter6?w=1&wtimeoutMS=0&journal=true
+  database: starter6
 
 spring:
   jackson:
@@ -24,11 +25,7 @@ spring:
   resources:
     cache:
       period: 31556926
-  
-  mvc:
-    favicon:
-      enabled: false
-
+ 
   mail:
     host: localhost    
 
@@ -50,7 +47,7 @@ server:
   compression:
      enabled: true
      mime-types: text/html,text/xml,text/plain,text/css,application/json,application/javascript,image/svg+xml,application/x-font-ttf,application/x-font-truetype,application/x-font-opentype,application/vnd.ms-fontobject,application/font-sfnt     
-  use-forward-headers: true
+  forward-headers-strategy: framework
 
 logging:
   level:

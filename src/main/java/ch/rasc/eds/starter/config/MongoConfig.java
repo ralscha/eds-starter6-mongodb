@@ -5,8 +5,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 
 @Configuration
@@ -15,20 +16,18 @@ public class MongoConfig {
 
 	@Bean
 	public MongoClient mongoClient(MongoProperties properties) {
-		MongoClientURI uri = new MongoClientURI(properties.getUri());
-		return new MongoClient(uri);
+		return MongoClients.create(properties.getUri());
 	}
 
 	@Bean
 	public MongoDatabase mongoDatabase(MongoClient mongoClient,
 			MongoProperties properties) {
-		MongoClientURI uri = new MongoClientURI(properties.getUri());
-		return mongoClient.getDatabase(uri.getDatabase())
+		return mongoClient.getDatabase(properties.getDatabase())
 				.withCodecRegistry(CodecRegistries.fromRegistries(
 						CodecRegistries.fromProviders(new ListCodec.Provider()),
 						CodecRegistries.fromProviders(
 								new ch.rasc.eds.starter.config.PojoCodecProvider()),
-						MongoClient.getDefaultCodecRegistry()));
+						MongoClientSettings.getDefaultCodecRegistry()));
 	}
 
 }

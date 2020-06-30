@@ -9,12 +9,22 @@ public class MongoProperties {
 
 	private String uri = "mongodb://localhost";
 
+	private String database;
+
 	public String getUri() {
 		return this.uri;
 	}
 
 	public void setUri(String uri) {
 		this.uri = uri;
+	}
+
+	public String getDatabase() {
+		return this.database;
+	}
+
+	public void setDatabase(String database) {
+		this.database = database;
 	}
 
 }
